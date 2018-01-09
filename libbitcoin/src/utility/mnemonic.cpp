@@ -19,6 +19,7 @@
  */
 #include <bitcoin/utility/mnemonic.hpp>
 
+#include <iostream>
 #include <algorithm>
 #include <sstream>
 #include <bitcoin/utility/assert.hpp>

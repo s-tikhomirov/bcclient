@@ -7,6 +7,7 @@
 #include "rcvutil.hpp"
 #include "main.hpp"
 
+#include <iostream>
 #include <bitcoin/bitcoin.hpp>
 #include <boost/algorithm/string.hpp>
 #include <string>
