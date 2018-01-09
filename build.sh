@@ -13,7 +13,6 @@ network=$1
 
 if [ "$network"	 = "mainnet" ]; then
 	echo "building for" $network "..."
-	sudo apt-get install build-essential autoconf automake libtool libboost-all-dev pkg-config libcurl4-openssl-dev libleveldb-dev shtool
 	cd libbitcoin
 	ln -s $(which shtool)
 	autoreconf -i
