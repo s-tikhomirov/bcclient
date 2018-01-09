@@ -100,5 +100,3 @@ In order to put everything back:
 ## Output format 
 When ./bcclient receives a transaction it prints by default it in a
 succinct way. In order to include fields description, use '-v' flag. 
-
-BC:14iyH71Y9kEDUXdQCytizPNTvFNAUUn3do
