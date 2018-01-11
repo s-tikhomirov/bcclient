@@ -359,6 +359,44 @@ void print_help(int exval)
   exit(exval);
 }
 
+void loadPeers(char *peersFilename, int begin, int end, int addr_timeoffset, int connectionsPerPeer) {  
+    log_info() << "Loading peers from file.";
+    std::ifstream infile(peersFilename);
+    std::string poundsign;
+    time_t timestamp;
+    uint16_t is_locked;
+    infile >> poundsign >> timestamp >> is_locked;
+    log_info() << "Reading " << peersFilename << "; poundsign=" << poundsign <<
+                  ", timestamp=" << timestamp << ", is_locked=" << is_locked;
+    struct peer_address addr;
+    int number_of_reads = 0;
+    while (infile >> addr.ip >> addr.port)
+    {
+     number_of_reads++;
+     if (number_of_reads < begin)
+       continue;
+     if ((end >= 0) && (number_of_reads > end))
+       break;
+     addr.failed_tries = 0;
+     addr.state = DISCONNECTED;
+     addr.numGetAddrToSend = numGetAddrToSend;
+     addr.addr_timeoffset = addr_timeoffset;
+     addr.pong_remained = 0;
+     addr.pong_waittime = 0;
+     addr.fGetAddrSentConfirmed = false;
+     addr.fInbound = false;
+     int i = 0;
+     for (i = 1; i <= connectionsPerPeer; i++)
+     {
+       addr.instance_num = i;
+       mPeersAddresses[peer_address_to_string(addr)] = addr;
+     }
+    }
+    last_peers_updatetime = time(NULL);
+    peers_timestamp = timestamp;
+    log_info() << "Added " << mPeersAddresses.size() << " addresses";
+}
+
 /**** MAIN ****/
 
 int main(int argc, char *argv[])
@@ -468,69 +506,23 @@ int main(int argc, char *argv[])
   }
 
   // *** 2. Init the logger ***
-
   Logger logger(logFilename, fPrintDebug);
 
-  //std::cout << "To listen: ";
-  //for (auto c : listen_msgs)
-  //    std::cout << c << ' ';
-  //std::cout << "\nTo send (numGetAddrToSend=" << numGetAddrToSend << ";payloadAddrFilename=" << payloadAddrFilename << ";addr_timeoffset=" << addr_timeoffset << "): ";
-  //for (auto c : send_msgs)
-  //    std::cout << c << ' ';
-  //std::cout << '\n';
 
   // *** 3. Load peers from the file (if provided) ***
   /* // If we asked to send getaddr, we need to listen to addr messages
   if (std::find(send_msgs.begin(), send_msgs.end(), "getaddr") != send_msgs.end())
     listen_msgs.push_back("addr");*/
+
   if(peersFilename)
   {
-    log_info() << "Loading peers from file.";
-    std::ifstream infile(peersFilename);
-    std::string poundsign;
-    time_t timestamp;
-    uint16_t is_locked;
-    infile >> poundsign >> timestamp >> is_locked;
-    log_info() << "Reading " << peersFilename << "; poundsign=" << poundsign <<
-                  ", timestamp=" << timestamp << ", is_locked=" << is_locked;
-    struct peer_address addr;
-    int number_of_reads = 0;
-    while (infile >> addr.ip >> addr.port)
-    {
-     number_of_reads++;
-     if (number_of_reads < begin)
-       continue;
-     if ((end >= 0) && (number_of_reads > end))
-       break;
-     addr.failed_tries = 0;
-     addr.state = DISCONNECTED;
-     addr.numGetAddrToSend = numGetAddrToSend;
-     addr.addr_timeoffset = addr_timeoffset;
-     addr.pong_remained = 0;
-     addr.pong_waittime = 0;
-     addr.fGetAddrSentConfirmed = false;
-     addr.fInbound = false;
-     int i = 0;
-     for (i=1;i<=n;i++)
-     {
-       addr.instance_num = i;
-       mPeersAddresses[peer_address_to_string(addr)] = addr;
-     }
-    }
-    last_peers_updatetime = time(NULL);
-    peers_timestamp = timestamp;
-    log_info() << "Added " << mPeersAddresses.size() << " addresses";
+    loadPeers(peersFilename, begin, end, addr_timeoffset, n);
   }
 
 
-  // optind >= argc means that there are no addresses from the command line
-  //if (optind >= argc && (mPeersAddresses.size() == 0)) {
-  //    printf("No peer addresses were provided\n");
-  //    printf("Try '%s -h' for more information\n", PACKAGE);
-  //    exit(1);
-  //}
 
   // *** 5. Load peers addresses from the command line ***
+  // optind >= argc means that there are no addresses from the command line
   if (optind < argc)
   {
     log_info() << "Loading peer address from the command line.";
