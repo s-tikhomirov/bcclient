@@ -359,7 +359,7 @@ void print_help(int exval)
   exit(exval);
 }
 
-void loadPeers(char *peersFilename, int begin, int end, int addr_timeoffset, int connectionsPerPeer) {  
+void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoffset, int connectionsPerPeer) {  
     log_info() << "Loading peers from file.";
     std::ifstream infile(peersFilename);
     std::string poundsign;
@@ -395,6 +395,28 @@ void loadPeers(char *peersFilename, int begin, int end, int addr_timeoffset, int
     last_peers_updatetime = time(NULL);
     peers_timestamp = timestamp;
     log_info() << "Added " << mPeersAddresses.size() << " addresses";
+}
+
+void loadPeerFromCommandLine(std::string ip, uint16_t port, int addr_timeoffset, int connectionsPerPeer) {
+  log_info() << "Loading peer address from the command line.";
+  struct peer_address addr;
+  addr.ip = ip;
+  addr.port = port;
+  addr.failed_tries = 0;
+  addr.state = DISCONNECTED;
+  addr.numGetAddrToSend = numGetAddrToSend;
+  addr.addr_timeoffset = addr_timeoffset;
+  addr.pong_remained = 0;
+  addr.pong_waittime = 0;
+  addr.fGetAddrSentConfirmed = false;
+  addr.fInbound = false;
+  //log_info() << "Adding " << peer_address_to_string(addr);
+  int i = 0;
+  for (i = connectionsPerPeer+1; i <= 2*connectionsPerPeer; i++)
+  {
+    addr.instance_num = i;
+    mPeersAddresses[peer_address_to_string(addr)] = addr;
+  }
 }
 
 /**** MAIN ****/
@@ -514,9 +536,8 @@ int main(int argc, char *argv[])
   if (std::find(send_msgs.begin(), send_msgs.end(), "getaddr") != send_msgs.end())
     listen_msgs.push_back("addr");*/
 
-  if(peersFilename)
-  {
-    loadPeers(peersFilename, begin, end, addr_timeoffset, n);
+  if(peersFilename) {
+    loadPeersFromFile(peersFilename, begin, end, addr_timeoffset, n);
   }
 
 
@@ -525,25 +546,7 @@ int main(int argc, char *argv[])
   // optind >= argc means that there are no addresses from the command line
   if (optind < argc)
   {
-    log_info() << "Loading peer address from the command line.";
-    struct peer_address addr;
-    addr.ip = argv[optind];
-    addr.port = port;
-    addr.failed_tries = 0;
-    addr.state = DISCONNECTED;
-    addr.numGetAddrToSend = numGetAddrToSend;
-    addr.addr_timeoffset = addr_timeoffset;
-    addr.pong_remained = 0;
-    addr.pong_waittime = 0;
-    addr.fGetAddrSentConfirmed = false;
-    addr.fInbound = false;
-    //log_info() << "Adding " << peer_address_to_string(addr);
-    int i = 0;
-    for (i=n+1;i<=2*n;i++)
-    {
-      addr.instance_num = i;
-      mPeersAddresses[peer_address_to_string(addr)] = addr;
-    }
+    loadPeerFromCommandLine(argv[optind], port, addr_timeoffset, n);
   }
 
   // *** 4. Load blockhashes that we already know (so we don't request the whole blockchain) ***
