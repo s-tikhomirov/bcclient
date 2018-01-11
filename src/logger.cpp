@@ -11,7 +11,7 @@ using std::placeholders::_2;
 using std::placeholders::_3;
 
 Logger::Logger(char *logFilename, bool fPrintDebug) {
-  printf("Initializing logging to file.\n");
+  log_info() << "Initializing logging to file.";
   std::ofstream logfile;
   if(logFilename)
   {
@@ -20,7 +20,7 @@ Logger::Logger(char *logFilename, bool fPrintDebug) {
     log_debug().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
     log_error().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
   } else {
-    printf("Initializing logging to colsole.\n");
+    log_info() << "Initializing logging to colsole.";
     log_info().set_output_function(output_to_terminal);
     log_debug().set_output_function(output_to_terminal);
     log_error().set_output_function(output_to_terminal);
