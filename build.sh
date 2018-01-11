@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Builds the bcclient tool for either mainnet (default) or testnet.
+# Builds the bcclient tool for either mainnet or testnet.
 
-usage="Usage (mainnet is default): ./build [(mainnet)?|testnet]"
+usage="Usage: ./build [mainnet|testnet]"
 
 if [ $# -gt 1 ]; then
 	echo $0: $usage
