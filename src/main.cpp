@@ -6,6 +6,7 @@
 #include "../include/util.hpp"
 #include "../include/rcvutil.hpp"
 #include "../include/main.hpp"
+#include "../include/logger.hpp"
 
 #include <iostream>
 #include <bitcoin/bitcoin.hpp>
@@ -358,6 +359,7 @@ void print_help(int exval)
   exit(exval);
 }
 
+/**** MAIN ****/
 
 int main(int argc, char *argv[])
 {
@@ -466,25 +468,8 @@ int main(int argc, char *argv[])
   }
 
   // *** 2. Init the logger ***
-  printf("Setting up logging subsystem.\n");
-  std::ofstream logfile;
-  if(logFilename)
-  {
-    logfile.open(logFilename, std::ios_base::app);
-    log_info().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
-    log_debug().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
-    log_error().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
-  } else
-  {
-    log_info().set_output_function(output_to_terminal);
-    log_debug().set_output_function(output_to_terminal);
-    log_error().set_output_function(output_to_terminal);
-  }
 
-  if (!fPrintDebug)
-  {
-    log_debug().set_output_function(std::bind(output_to_null, std::ref(logfile), _1, _2, _3));
-  }
+  Logger logger(logFilename, fPrintDebug);
 
   //std::cout << "To listen: ";
   //for (auto c : listen_msgs)
@@ -640,9 +625,8 @@ int main(int argc, char *argv[])
     //if (strncmp(answ, "y",1) == 0)
     //  dump_block_hashes("blockhashes.dump");
   }
-  log_info() << "Exited cleanely.";
-  if (logfile.is_open())
-    logfile.close();
+
+  logger.close();
   return 0;
 }
 
