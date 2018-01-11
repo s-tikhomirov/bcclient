@@ -14,9 +14,9 @@ TAGFILES 			= GPATH GRTAGS GSYMS GTAGS tags
 
 OBJECTS 			= sendutil.o util.o rcvutil.o main.o
 
-SRC_DIR 				= ./src/
-INCLUDE_DIR				= ./include/
-TARGET_DIR				= ./target/
+SRC_DIR 			= ./src/
+INCLUDE_DIR			= ./include/
+TARGET_DIR			= ./target/
 
 all: $(OBJECTS) generate-addresses
 	@echo " CXX $(BCNAME)"

@@ -4,7 +4,7 @@
 
 make > /dev/null # supresses STDOUT but not STDERR
 
-if ( ./bcclient 148.251.191.74 -p 18333 | grep -q "Version received")
+if ( ./target/bcclient 148.251.191.74 -p 18333 | grep -q "Version received")
 then
 	echo "Tests OK"
 else
