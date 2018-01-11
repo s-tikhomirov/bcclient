@@ -4,7 +4,7 @@
 
 usage="Usage: ./build [mainnet|testnet]"
 
-if [ $# -gt 1 ]; then
+if [ $# -ne 1 ]; then
 	echo $0: $usage
 	exit 1
 fi
