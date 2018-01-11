@@ -14,36 +14,25 @@ TAGFILES 			= GPATH GRTAGS GSYMS GTAGS tags
 
 OBJECTS 			= sendutil.o util.o rcvutil.o main.o
 
-SRC 				= ./src/
-INCLUDE				= ./include/
+SRC_DIR 				= ./src/
+INCLUDE_DIR				= ./include/
+TARGET_DIR				= ./target/
 
 all: $(OBJECTS) generate-addresses
-	@echo "  CXX $(BCNAME)"
-	@$(CXX) $(CXXFLAGS) -Wl,-rpath $(LIBBITCOIN_LIBS)  $(LDFLAGS) -o $(BCNAME) $(OBJECTS)  -lboost_chrono -lboost_system -lbitcoin
+	@echo " CXX $(BCNAME)"
+	@$(CXX) $(CXXFLAGS) -Wl,-rpath $(LIBBITCOIN_LIBS)  $(LDFLAGS) -o $(TARGET_DIR)$(BCNAME) $(OBJECTS)  -lboost_chrono -lboost_system -lbitcoin
 
 tags:
 	gtags
 	ctags -R .
 
-sendutil.o: $(SRC)sendutil.cpp $(INCLUDE)sendutil.hpp
-	@echo "  CXX sendutil.o"
-	@$(CXX) $(CXXFLAGS) $(CFLAGS) -c $(SRC)sendutil.cpp
+%.o: $(SRC_DIR)%.cpp $(INCLUDE_DIR)%.hpp
+	@echo " CXX" $<
+	@$(CXX) $(CXXFLAGS) $(CFLAGS) -c $<
 
-util.o: $(SRC)util.cpp $(INCLUDE)util.hpp
-	@echo "  CXX util.o"
-	@$(CXX) $(CXXFLAGS) $(CFLAGS) -c $(SRC)util.cpp
-
-rcvutil.o: $(SRC)rcvutil.cpp $(INCLUDE)rcvutil.hpp
-	@echo "  CXX rcvutil.o"
-	@$(CXX) $(CXXFLAGS) $(CFLAGS) -c $(SRC)rcvutil.cpp
-
-main.o: $(SRC)main.cpp $(INCLUDE)main.hpp
-	@echo "  CXX main.o"
-	@$(CXX) $(CXXFLAGS) $(CFLAGS) -c $(SRC)main.cpp
-
-generate-addresses: $(SRC)generate-addresses.cpp
-	@echo "  CXX $(GENNAME)"
-	@$(CXX) $(CXXFLAGS) $(CFLAGS) -o $(GENNAME) $(SRC)generate-addresses.cpp
+generate-addresses: $(SRC_DIR)generate-addresses.cpp
+	@echo " CXX" $<
+	@$(CXX) $(CXXFLAGS) $(CFLAGS) -o $(GENNAME) $<
 
 clean:
 	rm -f $(OBJECTS) $(GENNAME) $(BCNAME) $(TAGFILES)
