@@ -1,5 +1,9 @@
 # Source: https://github.com/github/gitignore
 
+# Specific files (can't 'git rm --cached' them for some reason)
+bcclient
+generate-addresses
+
 # Prerequisites
 *.d
 
