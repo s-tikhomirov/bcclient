@@ -419,6 +419,21 @@ void loadPeerFromCommandLine(std::string ip, uint16_t port, int addr_timeoffset,
   }
 }
 
+void loadBlockhashes(char *blocksFilename) {  
+    log_info() << "Loading known block hashes.";
+    std::ifstream infile(blocksFilename);
+    std::string sBlockHash; // Block hash as hex string
+    log_info() << "Reading " << blocksFilename << " for known block hashes";
+    while (infile >> sBlockHash)
+    {
+      //log_debug() << "Reading " << sBlockHash;
+      std::istringstream buffer(sBlockHash);
+      hash_digest aBlockHash = decode_hex_digest<hash_digest>(sBlockHash); // Block hash as array<uint_8, 32>
+      old_blocks.insert(aBlockHash);
+    }
+    log_info() << "Size of old_blocks is  " << old_blocks.size();
+}
+
 /**** MAIN ****/
 
 int main(int argc, char *argv[])
@@ -552,18 +567,7 @@ int main(int argc, char *argv[])
   // *** 4. Load blockhashes that we already know (so we don't request the whole blockchain) ***
   if(blocksFilename)
   {
-    log_info() << "Loading known block hashes.";
-    std::ifstream infile(blocksFilename);
-    std::string sBlockHash; // Block hash as hex string
-    log_info() << "Reading " << blocksFilename << " for known block hashes";
-    while (infile >> sBlockHash)
-    {
-      //log_debug() << "Reading " << sBlockHash;
-      std::istringstream buffer(sBlockHash);
-      hash_digest aBlockHash = decode_hex_digest<hash_digest>(sBlockHash); // Block hash as array<uint_8, 32>
-      old_blocks.insert(aBlockHash);
-    }
-    log_info() << "Size of old_blocks is  " << old_blocks.size();
+    loadBlockhashes(blocksFilename);
   }
 
   // *** 6. Load Payload addresses ***
