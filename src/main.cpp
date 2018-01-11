@@ -59,8 +59,7 @@ std::mutex seen_blocks_lock;
    @Out: <void>
    @Return: <void>
 */
-void dump_block_hashes(std::string filename)
-{
+void dump_block_hashes(std::string filename) {
   std::ofstream dumpfile;
   dumpfile.open(filename, std::ios_base::app);
   for (const auto& blk_hash : seen_blocks)
@@ -76,8 +75,7 @@ void dump_block_hashes(std::string filename)
    Set <stop_execution> to true 
    will tell the main loop to break.  
 */
-void sigint_handler(int sig_num)
-{
+void sigint_handler(int sig_num) {
   stop_execution = true;
   return;
 }
@@ -93,8 +91,7 @@ void sigint_handler(int sig_num)
    (*) The first line of <peers_file> should be '# <timestamp> <state>',
        The format of the rest of the file is '<ip> <port>' per line
 */
-void refresh_peers(char *peers_file, std::string lock_file)
-{
+void refresh_peers(char *peers_file, std::string lock_file) {
   if(!peers_file) // Don't update if addresses were provided only from the command line
     return;
   std::ifstream infile(peers_file);
@@ -199,8 +196,7 @@ void refresh_peers(char *peers_file, std::string lock_file)
    @Out: <void>
    @Return: <void>
 */
-void main_connect_loop(network &net, char *peers_file, int begin, int end, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs)
-{
+void main_connect_loop(network &net, char *peers_file, int begin, int end, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
   //threadpool pool(4);
   //network net(pool);
   //log_info() << "Listen on port 8333";
@@ -292,9 +288,7 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
 }
 
 // 'arg' is in the form 'getaddr=2' or 'addr=file.txt' or just 'addr'
-int parse_send_messages(char *arg, std::vector<std::string>& send_msgs, int *numGetAddrToSend, char *payloadAddrFilename,
-                        int *addr_timeoffset)
-{
+int parse_send_messages(char *arg, std::vector<std::string>& send_msgs, int *numGetAddrToSend, char *payloadAddrFilename, int *addr_timeoffset) {
   std::vector<std::string> strs;
   std::string arg_str = std::string(arg);
   boost::split(strs, arg_str, boost::is_any_of("="));
@@ -324,8 +318,7 @@ int parse_send_messages(char *arg, std::vector<std::string>& send_msgs, int *num
   return 0;
 }
 
-void print_help(int exval) 
-{
+void print_help(int exval) {
   printf("Usage: %s [-h] [options] (-f PEERS_FILE | IPADDR)\n", PACKAGE);
   printf("Listen and send bitcoin messages from IPADDR or from a list of peers\n");
   printf("OPTIONS:\n");
@@ -370,8 +363,7 @@ void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoff
                   ", timestamp=" << timestamp << ", is_locked=" << is_locked;
     struct peer_address addr;
     int number_of_reads = 0;
-    while (infile >> addr.ip >> addr.port)
-    {
+    while (infile >> addr.ip >> addr.port) {
      number_of_reads++;
      if (number_of_reads < begin)
        continue;
@@ -386,11 +378,10 @@ void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoff
      addr.fGetAddrSentConfirmed = false;
      addr.fInbound = false;
      int i = 0;
-     for (i = 1; i <= connectionsPerPeer; i++)
-     {
+     for (i = 1; i <= connectionsPerPeer; i++) {
        addr.instance_num = i;
        mPeersAddresses[peer_address_to_string(addr)] = addr;
-     }
+      }
     }
     last_peers_updatetime = time(NULL);
     peers_timestamp = timestamp;
@@ -412,8 +403,7 @@ void loadPeerFromCommandLine(std::string ip, uint16_t port, int addr_timeoffset,
   addr.fInbound = false;
   //log_info() << "Adding " << peer_address_to_string(addr);
   int i = 0;
-  for (i = connectionsPerPeer+1; i <= 2*connectionsPerPeer; i++)
-  {
+  for (i = connectionsPerPeer+1; i <= 2*connectionsPerPeer; i++) {
     addr.instance_num = i;
     mPeersAddresses[peer_address_to_string(addr)] = addr;
   }
@@ -424,9 +414,7 @@ void loadBlockhashes(char *blocksFilename) {
     std::ifstream infile(blocksFilename);
     std::string sBlockHash; // Block hash as hex string
     log_info() << "Reading " << blocksFilename << " for known block hashes";
-    while (infile >> sBlockHash)
-    {
-      //log_debug() << "Reading " << sBlockHash;
+    while (infile >> sBlockHash) {
       std::istringstream buffer(sBlockHash);
       hash_digest aBlockHash = decode_hex_digest<hash_digest>(sBlockHash); // Block hash as array<uint_8, 32>
       old_blocks.insert(aBlockHash);
@@ -435,14 +423,14 @@ void loadBlockhashes(char *blocksFilename) {
 }
 
 void loadPayloadAddresses(char *payloadAddrFilename) {  
-    log_info() << "Loading paylaod addresses for 'addr' messages.";
+    log_info() << "Loading payload addresses for 'addr' messages.";
     std::ifstream infile(payloadAddrFilename);
     std::string address;
     std::string sPort;
-    while (infile >> address >> sPort)
+    while (infile >> address >> sPort) {
       vPayloadAddresses.push_back(address+std::string(" ")+sPort);
-    if(vPayloadAddresses.size() == 0)
-    {
+    }
+    if(vPayloadAddresses.size() == 0) {
       printf("Payload address is required.\n");
       printf("Try '%s -h' for more information\n", PACKAGE);
       exit(1);
@@ -485,18 +473,15 @@ int main(int argc, char *argv[])
   };
   int c;
   opterr = 0;
-  while ((c = getopt_long(argc, argv, ":hvp:f:b:e:a:o:n:l:s:", long_options, NULL)) != -1)
-  {
-    switch (c)
-    {
+  while ((c = getopt_long(argc, argv, ":hvp:f:b:e:a:o:n:l:s:", long_options, NULL)) != -1) {
+    switch (c) {
       case 0:
         break; // long flag option
       case 'h':
         print_help(0);
         break;
       case 'l':
-        if (std::find(listen_message_types.begin(), listen_message_types.end(), std::string(optarg)) == listen_message_types.end())
-        {
+        if (std::find(listen_message_types.begin(), listen_message_types.end(), std::string(optarg)) == listen_message_types.end()) {
             fprintf (stderr,"Unknown message type: '%s'.\n",optarg);
             printf("Try '%s -h' for more information\n", PACKAGE);
             return 1;
@@ -570,24 +555,19 @@ int main(int argc, char *argv[])
     loadPeersFromFile(peersFilename, begin, end, addr_timeoffset, n);
   }
 
-
-
   // *** 5. Load peers addresses from the command line ***
   // optind >= argc means that there are no addresses from the command line
-  if (optind < argc)
-  {
+  if (optind < argc) {
     loadPeerFromCommandLine(argv[optind], port, addr_timeoffset, n);
   }
 
   // *** 4. Load blockhashes that we already know (so we don't request the whole blockchain) ***
-  if(blocksFilename)
-  {
+  if(blocksFilename) {
     loadBlockhashes(blocksFilename);
   }
 
   // *** 6. Load Payload addresses ***
-  if(payloadAddrFilename && strlen(payloadAddrFilename) != 0)
-  {
+  if(payloadAddrFilename && strlen(payloadAddrFilename) != 0) {
     loadPayloadAddresses(payloadAddrFilename);
   }
 
