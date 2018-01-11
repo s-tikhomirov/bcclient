@@ -30,7 +30,6 @@ using std::placeholders::_3;
 #define VERSION    "0.1"
 
 const std::string LOCK_FILE = "PEERSLOCK";
-//const int DELAY_BETWEEN_CONNECTIONS_MICRO = 100000;
 int delay_between_connections_micro = 100000;
 uint32_t max_failed_tries = 3; // Maximum number of failed tries, before a node is excluded from the list of peers 
 uint32_t num_open_connections = 0; // Stores totoal number of open connections
@@ -80,6 +79,7 @@ void sigint_handler(int sig_num) {
   return;
 }
 
+
 /* 
    Update global map <mPeersAddresses> by reading from <peers_file>.
    1. If less then <MIN_TIME_BETWEEN_UPDATES> seconds passed since the <last_peers_update>, return.
@@ -94,30 +94,26 @@ void sigint_handler(int sig_num) {
 void refresh_peers(char *peers_file, std::string lock_file) {
   if(!peers_file) // Don't update if addresses were provided only from the command line
     return;
-  std::ifstream infile(peers_file);
+  std::ifstream peersFile(peers_file);
   std::ifstream lockfile(lock_file);
+
   std::string poundsign;
   time_t timestamp;
   uint16_t is_locked;
 
   // Check if the lock file says that peers file is locked
   lockfile >> is_locked;
-
-  if ( is_locked )
-  {
+  if (is_locked) {
     log_debug() << "The peers file is locked by lockfile. Skipping.";
     return;
-  }
-
-  // One also can lock peers file inside the file itself
-  infile >> poundsign >> timestamp >> is_locked;
-  log_debug() << "Reading " << peers_file << "; poundsign=" << poundsign <<
-                ", timestamp=" << timestamp << ", is_locked=" << is_locked;
-
-  if ( is_locked )
-  {
-    log_debug() << "The peers file is locked from inside the file. Skipping.";
-    return;
+  } else {
+    peersFile >> poundsign >> timestamp >> is_locked;
+    log_debug() << "Reading " << peers_file << "; poundsign=" << poundsign <<
+                  ", timestamp=" << timestamp << ", is_locked=" << is_locked;
+    if (is_locked) {
+      log_debug() << "The peers file is locked from inside the file. Skipping.";
+      return;
+    }
   }
 
   if( ( time(NULL)-last_peers_updatetime < MIN_TIME_BETWEEN_UPDATES))
@@ -126,8 +122,7 @@ void refresh_peers(char *peers_file, std::string lock_file) {
     return;
   }
 
-  if ( timestamp <= peers_timestamp )
-  {
+  if ( timestamp <= peers_timestamp ) {
     log_debug() << "The timestamp is old, will not update and will keep all current peers";
     return;
   }
@@ -150,7 +145,7 @@ void refresh_peers(char *peers_file, std::string lock_file) {
   log_debug() << "Re-reading " << peers_file;
 
   struct peer_address addr;
-  while (infile >> addr.ip >> addr.port)
+  while (peersFile >> addr.ip >> addr.port)
   {
    // Only add peers that we don't already have
    addr.instance_num = 1; // Number of instances from file start from 1.
@@ -597,16 +592,8 @@ int main(int argc, char *argv[])
   pool.join();
 
   // *** 8. Ask the user to dump received block hashes ***
-  if (!listen_msgs.empty() && !seen_blocks.empty())
-  {
+  if (!listen_msgs.empty() && !seen_blocks.empty()) {
     dump_block_hashes("blockhashes.dump");
-    //log_info() << "Do you want to dump block hashes (to 'blockhashes.dump')? (y/n): ";
-    //if(logFilename)
-    //  fprintf(stderr, "Do you want to dump block hashes (to 'blockhashes.dump')? (y/n): ");
-    //char answ[4];
-    //std::cin.getline(answ,4);
-    //if (strncmp(answ, "y",1) == 0)
-    //  dump_block_hashes("blockhashes.dump");
   }
 
   logger.close();
