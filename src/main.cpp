@@ -434,6 +434,21 @@ void loadBlockhashes(char *blocksFilename) {
     log_info() << "Size of old_blocks is  " << old_blocks.size();
 }
 
+void loadPayloadAddresses(char *payloadAddrFilename) {  
+    log_info() << "Loading paylaod addresses for 'addr' messages.";
+    std::ifstream infile(payloadAddrFilename);
+    std::string address;
+    std::string sPort;
+    while (infile >> address >> sPort)
+      vPayloadAddresses.push_back(address+std::string(" ")+sPort);
+    if(vPayloadAddresses.size() == 0)
+    {
+      printf("Payload address is required.\n");
+      printf("Try '%s -h' for more information\n", PACKAGE);
+      exit(1);
+    }
+}
+
 /**** MAIN ****/
 
 int main(int argc, char *argv[])
@@ -573,18 +588,7 @@ int main(int argc, char *argv[])
   // *** 6. Load Payload addresses ***
   if(payloadAddrFilename && strlen(payloadAddrFilename) != 0)
   {
-    log_info() << "Loading paylaod addresses for 'addr' messages.";
-    std::ifstream infile(payloadAddrFilename);
-    std::string address;
-    std::string sPort;
-    while (infile >> address >> sPort)
-      vPayloadAddresses.push_back(address+std::string(" ")+sPort);
-    if(vPayloadAddresses.size() == 0)
-    {
-      printf("Payload address is required.\n");
-      printf("Try '%s -h' for more information\n", PACKAGE);
-      exit(1);
-    }
+    loadPayloadAddresses(payloadAddrFilename);
   }
 
  
