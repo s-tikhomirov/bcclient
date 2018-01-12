@@ -5,6 +5,9 @@
 #ifndef PEERSMAP_H
 #define PEERSMAP_H
 
+#define BITCOIN_MAINNET_PORT 8333
+#define BITCOIN_TESTNET_PORT 18333
+
 #include <iostream>
 #include <vector>
 #include <map>
@@ -57,5 +60,24 @@ public:
 
 };
 
+// new main class
+class BlockchainProber {
+	const std::string& peersFilename;
+	const std::string& blocksFilename;
+
+	const uint16_t port;
+	const uint16_t listenPort;
+
+	uint32_t connectionsPerPeer; // n
+public:
+	BlockchainProber(
+		const std::string& peersFilename = "peers.txt",
+		const std::string& blocksFilename = "blocks.txt",
+		uint16_t port = BITCOIN_TESTNET_PORT, 
+		uint16_t listenPort = BITCOIN_TESTNET_PORT);
+
+	std::string toString() const;
+
+};
 
 #endif

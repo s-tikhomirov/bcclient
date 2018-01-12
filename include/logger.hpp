@@ -12,7 +12,7 @@ using namespace bc;
 class Logger {
   std::ofstream logStream;
 public:
-  Logger(char *logFilename, bool fPrintDebug);
+  Logger(const std::string& logFilename = "", bool fPrintDebug = false);
 };
 
 #endif

@@ -7,7 +7,8 @@
 #include "../include/rcvutil.hpp"
 #include "../include/main.hpp"
 #include "../include/logger.hpp"
-#include "../include/newtypes.hpp"
+
+#include "../src/newtypes.cpp"
 
 #include <iostream>
 #include <bitcoin/bitcoin.hpp>
@@ -403,22 +404,35 @@ void loadPayloadAddresses(char *payloadAddrFilename) {
     }
 }
 
+
+
 /**** MAIN ****/
 
 int main(int argc, char *argv[])
 {
+  std::cout << "In main" << std::endl;
+  BlockchainProber bp = BlockchainProber();
+  std::cout << bp.toString() << std::endl;
+  
+  Address a = Address { "148.251.191.74", 18333 };
+  Connection connection = Connection(a);
+  std::cout << connection.toString() << std::endl;
+
+
+
   char *peersFilename = NULL; // File with Vector of peers to which we will establish connections
   char *blocksFilename = NULL; // File with Vector of already known bock hashes. This is to avoid requesting old blocks
                                // The same file will be used for periodically dumping known hashes
-  char *logFilename = NULL; // where to put log messages, NULL means print to terminal
+  std::string logFilename = ""; // where to put log messages, "" means print to terminal
 
   uint16_t port = 8333;  // Port of the peer specified in the command line
   uint16_t listen_port = 8333;  // Port on which we listen for incoming connections
   uint32_t n = 1; // Number of connections that will be established to each provided peer address
   bool fPrintDebug = false;
+
   std::vector<std::string> listen_msgs;
   std::vector<std::string> send_msgs;
-  //int numGetAddrToSend = 0; // Number of 'getaddr' message we need to send
+
   int addr_timeoffset = 0; // Offset for addresses which we send as a payload in 'addr' messages
   char payloadAddrFilename[256] = ""; // Filename containing addresses that we want to send to a peer as a payload
 

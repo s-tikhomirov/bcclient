@@ -8,7 +8,6 @@
 #include <vector>
 #include <map>
 
-
 Address::Address(std::string ip_, uint16_t port_) : ip(ip_), port(port_) {}
 
 std::string Address::toString() const {
@@ -32,13 +31,28 @@ std::string Connection::toString() const {
 	return address.toString() + "." + std::to_string(connectionId);
 }
 
+BlockchainProber::BlockchainProber(
+	const std::string& peersFilename_,
+	const std::string& blocksFilename_,
+	uint16_t port_,
+	uint16_t listenPort_)
+	:
+	peersFilename(peersFilename_),
+	blocksFilename(blocksFilename_),
+	port(port_),
+	listenPort(listenPort_)
+	{ }
+
+std::string BlockchainProber::toString() const {
+	return "Blockchain prober: port=" + std::to_string(port) + 
+	", listenPort=" + std::to_string(listenPort);
+}
+
 
 /*
 int main() {
 	std::cout << "in peersmap.cpp" << std::endl;
-	Address a = Address { "127.0.0.1", 18333 };
-	Connection c = Connection(a);
-	std::cout << c.toString() << std::endl;
+	
 	return 0;
 }
 */
