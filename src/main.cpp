@@ -169,7 +169,23 @@ void refresh_peers(char *peers_file, std::string lock_file) {
 }
 
 
+//// MAIN LOOP aux functions
 
+void try_connect(network &net, struct peer_address &addr, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
+    log_info() << "Connecting to "  << peer_address_to_string(addr) << " (try " << addr.failed_tries+1 << ")";
+    num_open_connections++; // global variable; shows the number of open connections. Dercrements when a connection is closed
+    addr.state = CONNECTING;
+    net.connect(addr.ip, addr.port, std::bind(connect_started, _1, _2, addr, listen_msgs, send_msgs));
+    usleep(delay_between_connections_micro);
+}
+
+bool do_stop_execution(bool stop_execution) {
+  if (stop_execution) {
+    log_info() << "Stop command received. Waiting for threads.";
+    return true;
+  }
+  return false;
+}
 
 /* Main loop.
    1. Constantly try to establish connections to the peers in <mPeersAddresses> list.
@@ -192,10 +208,7 @@ void refresh_peers(char *peers_file, std::string lock_file) {
    @Return: <void>
 */
 void main_connect_loop(network &net, char *peers_file, int begin, int end, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
-  //threadpool pool(4);
-  //network net(pool);
-  //log_info() << "Listen on port 8333";
-  //net.listen(8333, std::bind(listening_started, _1, _2, listen_msgs, send_msgs));
+
   time_t report_connections_time = time(NULL);
 
   // Go until the user presses Ctrl-C
@@ -208,18 +221,9 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
         struct peer_address &addr = pair.second;
         if ((addr.state == DISCONNECTED) && (addr.failed_tries < max_failed_tries))
         {
-          log_info() << "Connecting to "  << pair.first << " (try " << addr.failed_tries+1 << ")";
-          num_open_connections++; // global variable; shows the number of open connections.
-                                  // Dercrements when a connection is closed
-          addr.state = CONNECTING;
-          net.connect(addr.ip, addr.port, std::bind(connect_started, _1, _2, addr, listen_msgs, send_msgs));
-          usleep(delay_between_connections_micro);
+          try_connect(net, addr, listen_msgs, send_msgs);
         }
-        if (stop_execution)
-        {
-          log_info() << "Stop command received. Waiting for threads.";
-          break;
-        }
+        if (do_stop_execution(stop_execution)) break;
       }
 
       // * 2. Do the timestamp and lock checks; update global <mPeersAddresses>
@@ -232,11 +236,7 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
                       ", number of known peers is " << mPeersAddresses.size();
         report_connections_time = now;
       }
-      if (stop_execution)
-      {
-        log_info() << "Stop command received. Waiting for threads.";
-        break;
-      }
+      if (do_stop_execution(stop_execution)) break;
     }
   // Just try connect once to each peer (since we only need to received a version message)
   // UPDATE:TODO: now we can also send bogus tx and bogus blocks, so it makes sense to
@@ -245,18 +245,8 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
   {
     for (auto &pair : mPeersAddresses)
     {
-      struct peer_address &addr = pair.second;
-      log_info() << "Connecting to "  << pair.first << " (try " << addr.failed_tries+1 << ")";
-      num_open_connections++; // global variable; shows the number of open connections.
-                              // Dercrements when a connection is closed
-      addr.state = CONNECTING;
-      net.connect(addr.ip, addr.port, std::bind(connect_started, _1, _2, addr, listen_msgs, send_msgs));
-      usleep(delay_between_connections_micro);
-      if (stop_execution)
-      {
-        log_info() << "Stop command received. Waiting for threads.";
-        break;
-      }
+      try_connect(net, pair.second, listen_msgs, send_msgs);
+      if (do_stop_execution(stop_execution)) break;
     }
     // Wait until all connections are closed (i.e. we recevied all version messages or timeout)
     while (num_open_connections != 0)
@@ -269,17 +259,11 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
                       ", number of known peers is " << mPeersAddresses.size();
         report_connections_time = now;
       }
-      if (stop_execution)
-      {
-        log_info() << "Stop command received. Waiting for threads.";
-        break;
-      }
+      if (do_stop_execution(stop_execution)) break;
     }
     stop_execution = true; // Set to true, so that the main thread knows that we are done.
   }
 
-  //pool.stop();
-  //pool.join();
 }
 
 // 'arg' is in the form 'getaddr=2' or 'addr=file.txt' or just 'addr'
