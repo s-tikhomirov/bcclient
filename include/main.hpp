@@ -7,17 +7,9 @@
 
 #include <bitcoin/bitcoin.hpp>
 #include <string>
-//#include "util.hpp"
+#include "../include/newtypes.hpp"
 
 using namespace bc;
-
-//Types
-enum connection_state
-{
-  CONNECTING,
-  CONNECTED,
-  DISCONNECTED
-};
 
 struct peer_address
 {
@@ -25,7 +17,7 @@ struct peer_address
   uint16_t port;
   int instance_num; // If we establish several connections to the same peer.
   uint32_t failed_tries; // Don't try to connect anymore if we exceed the limit
-  connection_state state; // Keep connection state to decide when to reconnect
+  ConnectionState state; // Keep connection state to decide when to reconnect
   bool fGetAddrSentConfirmed; // false if we are still waiting a successful sent notification of 'getaddr' message
   int numGetAddrToSend; // Number of getaddr messages we need to send
   int addr_timeoffset; // Offset for addresses which we send as a payload in 'addr' messages
