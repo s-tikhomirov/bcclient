@@ -380,11 +380,6 @@ void node_stopped(const std::error_code& ec, peer_address& remote_addr)
     mPeersAddresses_lock.unlock();
 }
 
-void send_first_getaddr()
-{
-
-}
-
 
 void subscribe_to_events(channel_ptr node, std::vector<std::string>& listen_msgs, std::vector<std::string>& send_msgs, peer_address& remote_addr)
 {
