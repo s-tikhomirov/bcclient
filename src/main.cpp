@@ -187,6 +187,15 @@ bool do_stop_execution(bool stop_execution) {
   return false;
 }
 
+void update_reported_connections_time(time_t report_connections_time, time_t delay) {
+  time_t now = time(NULL);
+  if (now-report_connections_time > delay) {
+    log_info() << "Currently connected to " << num_open_connections << " nodes" <<
+                  ", number of known peers is " << mPeersAddresses.size();
+    report_connections_time = now;
+  }
+}
+
 /* Main loop.
    1. Constantly try to establish connections to the peers in <mPeersAddresses> list.
       Give up a peer if it failed 3 connection tries.
@@ -226,16 +235,11 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
         if (do_stop_execution(stop_execution)) break;
       }
 
-      // * 2. Do the timestamp and lock checks; update global <mPeersAddresses>
+      // * 2. Do the timestamp and lock checks; update ~~global <mPeersAddresses>~~ reported_connections_time
       refresh_peers(peers_file, LOCK_FILE);
+      update_reported_connections_time(report_connections_time, 300);
       usleep(delay_between_connections_micro);
-      time_t now = time(NULL);
-      if (now-report_connections_time > 300)
-      {
-        log_info() << "Currently connected to " << num_open_connections << " nodes" <<
-                      ", number of known peers is " << mPeersAddresses.size();
-        report_connections_time = now;
-      }
+      
       if (do_stop_execution(stop_execution)) break;
     }
   // Just try connect once to each peer (since we only need to received a version message)
@@ -251,14 +255,8 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
     // Wait until all connections are closed (i.e. we recevied all version messages or timeout)
     while (num_open_connections != 0)
     {
-      usleep(100000);
-      time_t now = time(NULL);
-      if (now-report_connections_time > 10)
-      {
-        log_info() << "Currently connected to " << num_open_connections << " nodes" <<
-                      ", number of known peers is " << mPeersAddresses.size();
-        report_connections_time = now;
-      }
+      usleep(delay_between_connections_micro);
+      update_reported_connections_time(report_connections_time, 10);
       if (do_stop_execution(stop_execution)) break;
     }
     stop_execution = true; // Set to true, so that the main thread knows that we are done.
