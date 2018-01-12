@@ -29,10 +29,3 @@ Logger::Logger(char *logFilename, bool fPrintDebug) {
     log_debug().set_output_function(std::bind(output_to_null, std::ref(logfile), _1, _2, _3));
   }
 }  
-
-void Logger::close() {
-  if (logStream.is_open()) {
-    logStream.close();
-  }
-  log_info() << "Exited cleanely.";
-}

@@ -13,7 +13,6 @@ class Logger {
   std::ofstream logStream;
 public:
   Logger(char *logFilename, bool fPrintDebug);
-  void close();
 };
 
 #endif

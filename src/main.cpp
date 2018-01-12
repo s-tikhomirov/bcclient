@@ -268,10 +268,7 @@ int parse_send_messages(char *arg, std::vector<std::string>& send_msgs, int *num
   std::string arg_str = std::string(arg);
   boost::split(strs, arg_str, boost::is_any_of("="));
   std::cout << "\n";
-  //int i;
-  //for (i=0;i<=2;i++)
-  //    std::cout << i << "->" << strs[i] << ' ';
-  //std::cout << "\n";
+
   if (std::find(send_message_types.begin(), send_message_types.end(), strs[0]) == send_message_types.end())
   {
       fprintf (stderr,"Unknown message type: '%s'.\n",strs[0].c_str());
@@ -561,7 +558,6 @@ int main(int argc, char *argv[])
     dump_block_hashes("blockhashes.dump");
   }
 
-  logger.close();
   return 0;
 }
 
