@@ -13,7 +13,7 @@ using std::placeholders::_3;
 // In seconds
 #define PONG_WAIT_TIME 10
 
-void ping_sent(const std::error_code& ec, channel_ptr node, struct peer_address& remote_addr)
+void ping_sent(const std::error_code& ec, channel_ptr node, peer_address& remote_addr)
 {
     if (ec)
         log_error() << "Sending ping: " << ec.message();
@@ -41,7 +41,7 @@ block_type create_bogus_block()
     return bogus_block;
 }
 
-void raw_received(const std::error_code& ec, const header_type& header, const data_chunk& data, channel_ptr node, struct peer_address& remote_addr) 
+void raw_received(const std::error_code& ec, const header_type& header, const data_chunk& data, channel_ptr node, peer_address& remote_addr) 
 {
   if (ec == error::service_stopped)
     return;
@@ -66,7 +66,7 @@ void raw_received(const std::error_code& ec, const header_type& header, const da
   return;
 }
 
-void block_sent(const std::error_code& ec, channel_ptr node, struct peer_address& remote_addr)
+void block_sent(const std::error_code& ec, channel_ptr node, peer_address& remote_addr)
 {
     if (ec)
         log_error() << "Sending block: " << ec.message();
@@ -87,7 +87,7 @@ void block_sent(const std::error_code& ec, channel_ptr node, struct peer_address
     node->send(ping, std::bind(ping_sent, _1, node, remote_addr));
 }
 
-void sendblock(channel_ptr node, struct peer_address& remote_addr)
+void sendblock(channel_ptr node, peer_address& remote_addr)
 {
   block_type bogus_block = create_bogus_block();
   log_info() << "Sending 'bogus_block' message. Size = " << sizeof(bogus_block) <<
@@ -97,7 +97,7 @@ void sendblock(channel_ptr node, struct peer_address& remote_addr)
 }
 
 
-void tx_sent(const std::error_code& ec, channel_ptr node, struct peer_address& remote_addr)
+void tx_sent(const std::error_code& ec, channel_ptr node, peer_address& remote_addr)
 {
     if (ec)
         log_error() << "Sending tx: " << ec.message();
@@ -120,7 +120,7 @@ void tx_sent(const std::error_code& ec, channel_ptr node, struct peer_address& r
     node->send(ping, std::bind(ping_sent, _1, node, remote_addr));
 }
 
-void sendtx(channel_ptr node, struct peer_address& remote_addr)
+void sendtx(channel_ptr node, peer_address& remote_addr)
 {
   //log_info() << "sendtx(): NOT IMPLEMENTED";
   transaction_type bogus_tx;
@@ -156,7 +156,7 @@ void sendtx(channel_ptr node, struct peer_address& remote_addr)
   return;
 }
 
-void addr_sent(const std::error_code& ec, channel_ptr node, struct peer_address& remote_addr,
+void addr_sent(const std::error_code& ec, channel_ptr node, peer_address& remote_addr,
                int start_idx)
 {
     if (ec)
@@ -192,7 +192,7 @@ void addr_sent(const std::error_code& ec, channel_ptr node, struct peer_address&
     }
 }
 
-void sendaddr(channel_ptr node, struct peer_address& remote_addr)
+void sendaddr(channel_ptr node, peer_address& remote_addr)
 {
     struct address_type addr_message;
     int i = 0;
@@ -221,7 +221,7 @@ void sendaddr(channel_ptr node, struct peer_address& remote_addr)
     return;
 }
 
-void send_messages(std::vector<std::string> send_msgs, channel_ptr node, struct peer_address& remote_addr)
+void send_messages(std::vector<std::string> send_msgs, channel_ptr node, peer_address& remote_addr)
 {
   // Block
   if (std::find(send_msgs.begin(), send_msgs.end(), "block") != send_msgs.end())

@@ -21,7 +21,7 @@ void version_sent(const std::error_code& ec, channel_ptr node)
         log_debug() << "Version sent.";
 }
 
-void get_data_sent(const std::error_code& ec, channel_ptr node, struct peer_address& remote_addr)
+void get_data_sent(const std::error_code& ec, channel_ptr node, peer_address& remote_addr)
 {
     if (ec)
         log_error() << "Sending get_data: " << ec.message();
@@ -41,7 +41,7 @@ void verack_sent(const std::error_code& ec, channel_ptr node)
    Send our verack message after we received 'verack' from <node> 
    Drop the failure statistics and set state to 'CONNECTED'
 */
-void version_received(const std::error_code& ec, const version_type& version, channel_ptr node, struct peer_address& sender_addr, bool resubs)
+void version_received(const std::error_code& ec, const version_type& version, channel_ptr node, peer_address& sender_addr, bool resubs)
 {
     if (ec == error::service_stopped)
       return;
@@ -66,7 +66,7 @@ void version_received(const std::error_code& ec, const version_type& version, ch
      mPeersAddresses_lock.unlock();
 }
 
-void getaddr_sent(const std::error_code& ec, channel_ptr node, struct peer_address& remote_addr)
+void getaddr_sent(const std::error_code& ec, channel_ptr node, peer_address& remote_addr)
 {
     if (ec)
         log_error() << "Sending 'getaddr' message: " << ec.message();
@@ -79,7 +79,7 @@ void getaddr_sent(const std::error_code& ec, channel_ptr node, struct peer_addre
    We first send 'getaddr' separately. The reason is that we need to wait for a reply in an 'addr'
    message (i.e. we cannot go to sendutil.cpp but  need to stay in this file). 
 */
-void verack_received(const std::error_code& ec, const verack_type& verack, channel_ptr node, struct peer_address& sender_addr,
+void verack_received(const std::error_code& ec, const verack_type& verack, channel_ptr node, peer_address& sender_addr,
                       std::vector<std::string> send_msgs)
 {
     if (ec == error::service_stopped)
@@ -111,7 +111,7 @@ void verack_received(const std::error_code& ec, const verack_type& verack, chann
    print:
    inputs=[{[ <sig1> ] [ <Pubkey1> ]},{[ <sig2> ] [ <Pubkey2> ]}, ... ]
 */
-void transaction_received(const std::error_code& ec, const transaction_type& tx, channel_ptr node, struct peer_address& sender_addr)
+void transaction_received(const std::error_code& ec, const transaction_type& tx, channel_ptr node, peer_address& sender_addr)
 {
     if (ec == error::service_stopped)
       return;
@@ -166,7 +166,7 @@ void transaction_received(const std::error_code& ec, const transaction_type& tx,
    not
    print:  - Info about non-coinbase transactions
 */
-void block_received(const std::error_code& ec, const block_type& block, channel_ptr node, struct peer_address& sender_addr)
+void block_received(const std::error_code& ec, const block_type& block, channel_ptr node, peer_address& sender_addr)
 {
     if (ec == error::service_stopped)
       return;
@@ -243,7 +243,7 @@ void block_received(const std::error_code& ec, const block_type& block, channel_
     node->subscribe_block(std::bind(block_received, _1, _2, node, sender_addr));
 }
 
-void inv_received(const std::error_code& ec, const inventory_type& inv, channel_ptr node, struct peer_address& sender_addr)
+void inv_received(const std::error_code& ec, const inventory_type& inv, channel_ptr node, peer_address& sender_addr)
 {
     if (ec == error::service_stopped)
       return;
@@ -313,7 +313,7 @@ void inv_received(const std::error_code& ec, const inventory_type& inv, channel_
     -- Send one 'getaddr' if there are left to send and decrease the number to be sent by one
 */
 void address_received(const std::error_code& ec, const address_type& addr_msg, channel_ptr node,
-                       struct peer_address& sender_addr)
+                       peer_address& sender_addr)
 {
     if (ec == error::service_stopped)
       return;
@@ -353,7 +353,7 @@ void address_received(const std::error_code& ec, const address_type& addr_msg, c
    Print that we received this message
 */
 void get_address_received(const std::error_code& ec, const get_address_type& get_addr_msg, channel_ptr node,
-                       struct peer_address& sender_addr)
+                       peer_address& sender_addr)
 {
     if (ec == error::service_stopped)
       return;
@@ -367,7 +367,7 @@ void get_address_received(const std::error_code& ec, const get_address_type& get
 }
 
 // Peer event handlers
-void node_stopped(const std::error_code& ec, struct peer_address& remote_addr)
+void node_stopped(const std::error_code& ec, peer_address& remote_addr)
 {
     if (ec == error::service_stopped)
       log_info() << peer_address_to_string(remote_addr) << ": Connection closed.";
@@ -386,7 +386,7 @@ void send_first_getaddr()
 }
 
 
-void subscribe_to_events(channel_ptr node, std::vector<std::string>& listen_msgs, std::vector<std::string>& send_msgs, struct peer_address& remote_addr)
+void subscribe_to_events(channel_ptr node, std::vector<std::string>& listen_msgs, std::vector<std::string>& send_msgs, peer_address& remote_addr)
 {
     node->subscribe_stop(std::bind(node_stopped, _1, remote_addr));
 
@@ -432,7 +432,7 @@ void subscribe_to_events(channel_ptr node, std::vector<std::string>& listen_msgs
    Thoug we have TCP-connected, wait until we received a 'version' message before
    droping failure statistics.
 */
-void connect_started(const std::error_code& ec, channel_ptr node, struct peer_address& remote_addr,
+void connect_started(const std::error_code& ec, channel_ptr node, peer_address& remote_addr,
                          std::vector<std::string>& listen_msgs,
                          std::vector<std::string>& send_msgs)
 {
@@ -510,8 +510,8 @@ void accepted_connection(const std::error_code& ec, channel_ptr node, acceptor_p
     }
     num_open_connections++;
     log_info() << "Accepted connection: " << node->get_remote_endpoint();
-    log_info() << "Creating corresponing struct peer_address object";
-    struct peer_address addr;
+    log_info() << "Creating corresponing peer_address object";
+    peer_address addr;
 
     std::vector<std::string> tokens;
     std::string ip_port_string = node->get_remote_endpoint();

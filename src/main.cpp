@@ -144,7 +144,7 @@ void refresh_peers(char *peers_file, std::string lock_file) {
 
   log_debug() << "Re-reading " << peers_file;
 
-  struct peer_address addr;
+  peer_address addr;
   while (peersFile >> addr.ip >> addr.port)
   {
    // Only add peers that we don't already have
@@ -171,7 +171,7 @@ void refresh_peers(char *peers_file, std::string lock_file) {
 
 //// MAIN LOOP aux functions
 
-void try_connect(network &net, struct peer_address &addr, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
+void try_connect(network &net, peer_address &addr, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
     log_info() << "Connecting to "  << peer_address_to_string(addr) << " (try " << addr.failed_tries+1 << ")";
     num_open_connections++; // global variable; shows the number of open connections. Dercrements when a connection is closed
     addr.state = CONNECTING;
@@ -227,7 +227,7 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
       // * 1. Try to connect to nodes in global <mPeersAddresses>
       for (auto &pair : mPeersAddresses)
       {
-        struct peer_address &addr = pair.second;
+        peer_address &addr = pair.second;
         if ((addr.state == DISCONNECTED) && (addr.failed_tries < max_failed_tries))
         {
           try_connect(net, addr, listen_msgs, send_msgs);
@@ -338,7 +338,7 @@ void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoff
     infile >> poundsign >> timestamp >> is_locked;
     log_info() << "Reading " << peersFilename << "; poundsign=" << poundsign <<
                   ", timestamp=" << timestamp << ", is_locked=" << is_locked;
-    struct peer_address addr;
+    peer_address addr;
     int number_of_reads = 0;
     while (infile >> addr.ip >> addr.port) {
      number_of_reads++;
@@ -367,7 +367,7 @@ void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoff
 
 void loadPeerFromCommandLine(std::string ip, uint16_t port, int addr_timeoffset, int connectionsPerPeer) {
   log_info() << "Loading peer address from the command line.";
-  struct peer_address addr;
+  peer_address addr;
   addr.ip = ip;
   addr.port = port;
   addr.failed_tries = 0;

@@ -11,6 +11,6 @@
 using namespace bc;
 
 // Send messages, if we need to send 'addr' messages, then the addresses are taken from global variable
-void send_messages(std::vector<std::string> send_msgs, channel_ptr node, struct peer_address& remote_addr);
+void send_messages(std::vector<std::string> send_msgs, channel_ptr node, peer_address& remote_addr);
 
 #endif

@@ -126,7 +126,7 @@ bool is_ipv4(ip_address_type ip)
   return true;
 }
 
-std::string peer_address_to_string(struct peer_address addr)
+std::string peer_address_to_string(peer_address addr)
 {
   std::string buff(addr.ip);
   buff += ":";
