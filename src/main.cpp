@@ -8,8 +8,6 @@
 #include "../include/main.hpp"
 #include "../include/logger.hpp"
 
-#include "../src/newtypes.cpp"
-
 #include <iostream>
 #include <bitcoin/bitcoin.hpp>
 #include <boost/algorithm/string.hpp>
@@ -410,16 +408,6 @@ void loadPayloadAddresses(char *payloadAddrFilename) {
 
 int main(int argc, char *argv[])
 {
-  std::cout << "In main" << std::endl;
-  BlockchainProber bp = BlockchainProber();
-  std::cout << bp.toString() << std::endl;
-  
-  Address a = Address { "148.251.191.74", 18333 };
-  Connection connection = Connection(a);
-  std::cout << connection.toString() << std::endl;
-
-
-
   char *peersFilename = NULL; // File with Vector of peers to which we will establish connections
   char *blocksFilename = NULL; // File with Vector of already known bock hashes. This is to avoid requesting old blocks
                                // The same file will be used for periodically dumping known hashes
