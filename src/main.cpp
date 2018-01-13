@@ -6,6 +6,7 @@
 #include "../include/util.hpp"
 #include "../include/rcvutil.hpp"
 #include "../include/main.hpp"
+#include "../include/logger.hpp"
 
 #include <iostream>
 #include <bitcoin/bitcoin.hpp>
@@ -29,7 +30,6 @@ using std::placeholders::_3;
 #define VERSION    "0.1"
 
 const std::string LOCK_FILE = "PEERSLOCK";
-//const int DELAY_BETWEEN_CONNECTIONS_MICRO = 100000;
 int delay_between_connections_micro = 100000;
 uint32_t max_failed_tries = 3; // Maximum number of failed tries, before a node is excluded from the list of peers 
 uint32_t num_open_connections = 0; // Stores totoal number of open connections
@@ -58,8 +58,7 @@ std::mutex seen_blocks_lock;
    @Out: <void>
    @Return: <void>
 */
-void dump_block_hashes(std::string filename)
-{
+void dump_block_hashes(std::string filename) {
   std::ofstream dumpfile;
   dumpfile.open(filename, std::ios_base::app);
   for (const auto& blk_hash : seen_blocks)
@@ -75,11 +74,11 @@ void dump_block_hashes(std::string filename)
    Set <stop_execution> to true 
    will tell the main loop to break.  
 */
-void sigint_handler(int sig_num)
-{
+void sigint_handler(int sig_num) {
   stop_execution = true;
   return;
 }
+
 
 /* 
    Update global map <mPeersAddresses> by reading from <peers_file>.
@@ -92,34 +91,29 @@ void sigint_handler(int sig_num)
    (*) The first line of <peers_file> should be '# <timestamp> <state>',
        The format of the rest of the file is '<ip> <port>' per line
 */
-void refresh_peers(char *peers_file, std::string lock_file)
-{
+void refresh_peers(char *peers_file, std::string lock_file) {
   if(!peers_file) // Don't update if addresses were provided only from the command line
     return;
-  std::ifstream infile(peers_file);
+  std::ifstream peersFile(peers_file);
   std::ifstream lockfile(lock_file);
+
   std::string poundsign;
   time_t timestamp;
   uint16_t is_locked;
 
   // Check if the lock file says that peers file is locked
   lockfile >> is_locked;
-
-  if ( is_locked )
-  {
+  if (is_locked) {
     log_debug() << "The peers file is locked by lockfile. Skipping.";
     return;
-  }
-
-  // One also can lock peers file inside the file itself
-  infile >> poundsign >> timestamp >> is_locked;
-  log_debug() << "Reading " << peers_file << "; poundsign=" << poundsign <<
-                ", timestamp=" << timestamp << ", is_locked=" << is_locked;
-
-  if ( is_locked )
-  {
-    log_debug() << "The peers file is locked from inside the file. Skipping.";
-    return;
+  } else {
+    peersFile >> poundsign >> timestamp >> is_locked;
+    log_debug() << "Reading " << peers_file << "; poundsign=" << poundsign <<
+                  ", timestamp=" << timestamp << ", is_locked=" << is_locked;
+    if (is_locked) {
+      log_debug() << "The peers file is locked from inside the file. Skipping.";
+      return;
+    }
   }
 
   if( ( time(NULL)-last_peers_updatetime < MIN_TIME_BETWEEN_UPDATES))
@@ -128,8 +122,7 @@ void refresh_peers(char *peers_file, std::string lock_file)
     return;
   }
 
-  if ( timestamp <= peers_timestamp )
-  {
+  if ( timestamp <= peers_timestamp ) {
     log_debug() << "The timestamp is old, will not update and will keep all current peers";
     return;
   }
@@ -151,8 +144,8 @@ void refresh_peers(char *peers_file, std::string lock_file)
 
   log_debug() << "Re-reading " << peers_file;
 
-  struct peer_address addr;
-  while (infile >> addr.ip >> addr.port)
+  peer_address addr;
+  while (peersFile >> addr.ip >> addr.port)
   {
    // Only add peers that we don't already have
    addr.instance_num = 1; // Number of instances from file start from 1.
@@ -176,7 +169,32 @@ void refresh_peers(char *peers_file, std::string lock_file)
 }
 
 
+//// MAIN LOOP aux functions
 
+void try_connect(network &net, peer_address &addr, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
+    log_info() << "Connecting to "  << peer_address_to_string(addr) << " (try " << addr.failed_tries+1 << ")";
+    num_open_connections++; // global variable; shows the number of open connections. Dercrements when a connection is closed
+    addr.state = CONNECTING;
+    net.connect(addr.ip, addr.port, std::bind(connect_started, _1, _2, addr, listen_msgs, send_msgs));
+    usleep(delay_between_connections_micro);
+}
+
+bool do_stop_execution(bool stop_execution) {
+  if (stop_execution) {
+    log_info() << "Stop command received. Waiting for threads.";
+    return true;
+  }
+  return false;
+}
+
+void update_reported_connections_time(time_t report_connections_time, time_t delay) {
+  time_t now = time(NULL);
+  if (now-report_connections_time > delay) {
+    log_info() << "Currently connected to " << num_open_connections << " nodes" <<
+                  ", number of known peers is " << mPeersAddresses.size();
+    report_connections_time = now;
+  }
+}
 
 /* Main loop.
    1. Constantly try to establish connections to the peers in <mPeersAddresses> list.
@@ -193,17 +211,11 @@ void refresh_peers(char *peers_file, std::string lock_file)
        <state> is either 0 (file is unlocked) or 1 (file is locked).
 
    @In: <peers_file> -- file with ip addresses of peers (the file is periodically checked for updates)
-        <begin> -- start reading from this address number in <peer_file>
-        <end> -- end reading at this address number in <peer_file>
    @Out: <void>
    @Return: <void>
 */
-void main_connect_loop(network &net, char *peers_file, int begin, int end, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs)
-{
-  //threadpool pool(4);
-  //network net(pool);
-  //log_info() << "Listen on port 8333";
-  //net.listen(8333, std::bind(listening_started, _1, _2, listen_msgs, send_msgs));
+void main_connect_loop(network &net, char *peers_file, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
+
   time_t report_connections_time = time(NULL);
 
   // Go until the user presses Ctrl-C
@@ -213,38 +225,20 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
       // * 1. Try to connect to nodes in global <mPeersAddresses>
       for (auto &pair : mPeersAddresses)
       {
-        struct peer_address &addr = pair.second;
+        peer_address &addr = pair.second;
         if ((addr.state == DISCONNECTED) && (addr.failed_tries < max_failed_tries))
         {
-          log_info() << "Connecting to "  << pair.first << " (try " << addr.failed_tries+1 << ")";
-          num_open_connections++; // global variable; shows the number of open connections.
-                                  // Dercrements when a connection is closed
-          addr.state = CONNECTING;
-          net.connect(addr.ip, addr.port, std::bind(connect_started, _1, _2, addr, listen_msgs, send_msgs));
-          usleep(delay_between_connections_micro);
+          try_connect(net, addr, listen_msgs, send_msgs);
         }
-        if (stop_execution)
-        {
-          log_info() << "Stop command received. Waiting for threads.";
-          break;
-        }
+        if (do_stop_execution(stop_execution)) break;
       }
 
-      // * 2. Do the timestamp and lock checks; update global <mPeersAddresses>
+      // * 2. Do the timestamp and lock checks; update global <mPeersAddresses> and reported_connections_time
       refresh_peers(peers_file, LOCK_FILE);
+      update_reported_connections_time(report_connections_time, 300);
       usleep(delay_between_connections_micro);
-      time_t now = time(NULL);
-      if (now-report_connections_time > 300)
-      {
-        log_info() << "Currently connected to " << num_open_connections << " nodes" <<
-                      ", number of known peers is " << mPeersAddresses.size();
-        report_connections_time = now;
-      }
-      if (stop_execution)
-      {
-        log_info() << "Stop command received. Waiting for threads.";
-        break;
-      }
+      
+      if (do_stop_execution(stop_execution)) break;
     }
   // Just try connect once to each peer (since we only need to received a version message)
   // UPDATE:TODO: now we can also send bogus tx and bogus blocks, so it makes sense to
@@ -253,55 +247,28 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
   {
     for (auto &pair : mPeersAddresses)
     {
-      struct peer_address &addr = pair.second;
-      log_info() << "Connecting to "  << pair.first << " (try " << addr.failed_tries+1 << ")";
-      num_open_connections++; // global variable; shows the number of open connections.
-                              // Dercrements when a connection is closed
-      addr.state = CONNECTING;
-      net.connect(addr.ip, addr.port, std::bind(connect_started, _1, _2, addr, listen_msgs, send_msgs));
-      usleep(delay_between_connections_micro);
-      if (stop_execution)
-      {
-        log_info() << "Stop command received. Waiting for threads.";
-        break;
-      }
+      try_connect(net, pair.second, listen_msgs, send_msgs);
+      if (do_stop_execution(stop_execution)) break;
     }
     // Wait until all connections are closed (i.e. we recevied all version messages or timeout)
     while (num_open_connections != 0)
     {
-      usleep(100000);
-      time_t now = time(NULL);
-      if (now-report_connections_time > 10)
-      {
-        log_info() << "Currently connected to " << num_open_connections << " nodes" <<
-                      ", number of known peers is " << mPeersAddresses.size();
-        report_connections_time = now;
-      }
-      if (stop_execution)
-      {
-        log_info() << "Stop command received. Waiting for threads.";
-        break;
-      }
+      usleep(delay_between_connections_micro);
+      update_reported_connections_time(report_connections_time, 10);
+      if (do_stop_execution(stop_execution)) break;
     }
     stop_execution = true; // Set to true, so that the main thread knows that we are done.
   }
 
-  //pool.stop();
-  //pool.join();
 }
 
 // 'arg' is in the form 'getaddr=2' or 'addr=file.txt' or just 'addr'
-int parse_send_messages(char *arg, std::vector<std::string>& send_msgs, int *numGetAddrToSend, char *payloadAddrFilename,
-                        int *addr_timeoffset)
-{
+int parse_send_messages(char *arg, std::vector<std::string>& send_msgs, int *numGetAddrToSend, char *payloadAddrFilename, int *addr_timeoffset) {
   std::vector<std::string> strs;
   std::string arg_str = std::string(arg);
   boost::split(strs, arg_str, boost::is_any_of("="));
   std::cout << "\n";
-  //int i;
-  //for (i=0;i<=2;i++)
-  //    std::cout << i << "->" << strs[i] << ' ';
-  //std::cout << "\n";
+
   if (std::find(send_message_types.begin(), send_message_types.end(), strs[0]) == send_message_types.end())
   {
       fprintf (stderr,"Unknown message type: '%s'.\n",strs[0].c_str());
@@ -323,8 +290,7 @@ int parse_send_messages(char *arg, std::vector<std::string>& send_msgs, int *num
   return 0;
 }
 
-void print_help(int exval) 
-{
+void print_help(int exval) {
   printf("Usage: %s [-h] [options] (-f PEERS_FILE | IPADDR)\n", PACKAGE);
   printf("Listen and send bitcoin messages from IPADDR or from a list of peers\n");
   printf("OPTIONS:\n");
@@ -352,29 +318,109 @@ void print_help(int exval)
   printf("  --exit-when-all-connected            UNIMPLEMENTED stop the program when all connections are established         \n");
   printf("  -a, --seen-blocks BLOCK_HASHES_FILE  file with hashes of already known blocks (i.e. we will not request them)    \n");
   printf("  -n CONNECTIONS                       number of parallel connections to establish for each address (default is 1) \n");
-  printf("  -b NUM                               if -f is present, read addresses starting from NUM (inclusive)              \n");
-  printf("  -e NUM                               if -f is present, read addresses until NUM (inclusive)                      \n");
  
   exit(exval);
 }
 
+void loadPeersFromFile(char *peersFilename, int addr_timeoffset, int connectionsPerPeer) {  
+    log_info() << "Loading peers from file.";
+    std::ifstream infile(peersFilename);
+    std::string poundsign;
+    time_t timestamp;
+    uint16_t is_locked;
+    infile >> poundsign >> timestamp >> is_locked;
+    log_info() << "Reading " << peersFilename << "; poundsign=" << poundsign <<
+                  ", timestamp=" << timestamp << ", is_locked=" << is_locked;
+    peer_address addr;
+
+    while (infile >> addr.ip >> addr.port) {
+     addr.failed_tries = 0;
+     addr.state = DISCONNECTED;
+     addr.numGetAddrToSend = numGetAddrToSend;
+     addr.addr_timeoffset = addr_timeoffset;
+     addr.pong_remained = 0;
+     addr.pong_waittime = 0;
+     addr.fGetAddrSentConfirmed = false;
+     addr.fInbound = false;
+     int i = 0;
+     for (i = 1; i <= connectionsPerPeer; i++) {
+       addr.instance_num = i;
+       mPeersAddresses[peer_address_to_string(addr)] = addr;
+      }
+    }
+    last_peers_updatetime = time(NULL);
+    peers_timestamp = timestamp;
+    log_info() << "Added " << mPeersAddresses.size() << " addresses";
+}
+
+void loadPeerFromCommandLine(std::string ip, uint16_t port, int addr_timeoffset, int connectionsPerPeer) {
+  log_info() << "Loading peer address from the command line.";
+  peer_address addr;
+  addr.ip = ip;
+  addr.port = port;
+  addr.failed_tries = 0;
+  addr.state = DISCONNECTED;
+  addr.numGetAddrToSend = numGetAddrToSend;
+  addr.addr_timeoffset = addr_timeoffset;
+  addr.pong_remained = 0;
+  addr.pong_waittime = 0;
+  addr.fGetAddrSentConfirmed = false;
+  addr.fInbound = false;
+  //log_info() << "Adding " << peer_address_to_string(addr);
+  int i = 0;
+  for (i = connectionsPerPeer+1; i <= 2*connectionsPerPeer; i++) {
+    addr.instance_num = i;
+    mPeersAddresses[peer_address_to_string(addr)] = addr;
+  }
+}
+
+void loadBlockhashes(char *blocksFilename) {  
+    log_info() << "Loading known block hashes.";
+    std::ifstream infile(blocksFilename);
+    std::string sBlockHash; // Block hash as hex string
+    log_info() << "Reading " << blocksFilename << " for known block hashes";
+    while (infile >> sBlockHash) {
+      std::istringstream buffer(sBlockHash);
+      hash_digest aBlockHash = decode_hex_digest<hash_digest>(sBlockHash); // Block hash as array<uint_8, 32>
+      old_blocks.insert(aBlockHash);
+    }
+    log_info() << "Size of old_blocks is  " << old_blocks.size();
+}
+
+void loadPayloadAddresses(char *payloadAddrFilename) {  
+    log_info() << "Loading payload addresses for 'addr' messages.";
+    std::ifstream infile(payloadAddrFilename);
+    std::string address;
+    std::string sPort;
+    while (infile >> address >> sPort) {
+      vPayloadAddresses.push_back(address+std::string(" ")+sPort);
+    }
+    if(vPayloadAddresses.size() == 0) {
+      printf("Payload address is required.\n");
+      printf("Try '%s -h' for more information\n", PACKAGE);
+      exit(1);
+    }
+}
+
+
+
+/**** MAIN ****/
 
 int main(int argc, char *argv[])
 {
   char *peersFilename = NULL; // File with Vector of peers to which we will establish connections
   char *blocksFilename = NULL; // File with Vector of already known bock hashes. This is to avoid requesting old blocks
                                // The same file will be used for periodically dumping known hashes
-  char *logFilename = NULL; // where to put log messages, NULL means print to terminal
+  std::string logFilename = ""; // where to put log messages, "" means print to terminal
 
   uint16_t port = 8333;  // Port of the peer specified in the command line
   uint16_t listen_port = 8333;  // Port on which we listen for incoming connections
   uint32_t n = 1; // Number of connections that will be established to each provided peer address
   bool fPrintDebug = false;
-  int begin = 0;  // If a file with peers is proveded, read starting from this address
-  int end = -1 ;  // If a file with peers is proveded, read starting from this address, -1 means read till the end
+
   std::vector<std::string> listen_msgs;
   std::vector<std::string> send_msgs;
-  //int numGetAddrToSend = 0; // Number of 'getaddr' message we need to send
+
   int addr_timeoffset = 0; // Offset for addresses which we send as a payload in 'addr' messages
   char payloadAddrFilename[256] = ""; // Filename containing addresses that we want to send to a peer as a payload
 
@@ -393,18 +439,15 @@ int main(int argc, char *argv[])
   };
   int c;
   opterr = 0;
-  while ((c = getopt_long(argc, argv, ":hvp:f:b:e:a:o:n:l:s:", long_options, NULL)) != -1)
-  {
-    switch (c)
-    {
+  while ((c = getopt_long(argc, argv, ":hvp:f:b:e:a:o:n:l:s:", long_options, NULL)) != -1) {
+    switch (c) {
       case 0:
         break; // long flag option
       case 'h':
         print_help(0);
         break;
       case 'l':
-        if (std::find(listen_message_types.begin(), listen_message_types.end(), std::string(optarg)) == listen_message_types.end())
-        {
+        if (std::find(listen_message_types.begin(), listen_message_types.end(), std::string(optarg)) == listen_message_types.end()) {
             fprintf (stderr,"Unknown message type: '%s'.\n",optarg);
             printf("Try '%s -h' for more information\n", PACKAGE);
             return 1;
@@ -429,12 +472,6 @@ int main(int argc, char *argv[])
         break;
       case 'n':
         n = atoi(optarg);
-        break;
-      case 'b':
-        begin = atoi(optarg);
-        break;
-      case 'e':
-        end = atoi(optarg);
         break;
       case 'v':
         fPrintDebug = true;
@@ -466,141 +503,32 @@ int main(int argc, char *argv[])
   }
 
   // *** 2. Init the logger ***
-  printf("Setting up logging subsystem.\n");
-  std::ofstream logfile;
-  if(logFilename)
-  {
-    logfile.open(logFilename, std::ios_base::app);
-    log_info().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
-    log_debug().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
-    log_error().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
-  } else
-  {
-    log_info().set_output_function(output_to_terminal);
-    log_debug().set_output_function(output_to_terminal);
-    log_error().set_output_function(output_to_terminal);
-  }
+  Logger logger(logFilename, fPrintDebug);
 
-  if (!fPrintDebug)
-  {
-    log_debug().set_output_function(std::bind(output_to_null, std::ref(logfile), _1, _2, _3));
-  }
-
-  //std::cout << "To listen: ";
-  //for (auto c : listen_msgs)
-  //    std::cout << c << ' ';
-  //std::cout << "\nTo send (numGetAddrToSend=" << numGetAddrToSend << ";payloadAddrFilename=" << payloadAddrFilename << ";addr_timeoffset=" << addr_timeoffset << "): ";
-  //for (auto c : send_msgs)
-  //    std::cout << c << ' ';
-  //std::cout << '\n';
 
   // *** 3. Load peers from the file (if provided) ***
   /* // If we asked to send getaddr, we need to listen to addr messages
   if (std::find(send_msgs.begin(), send_msgs.end(), "getaddr") != send_msgs.end())
     listen_msgs.push_back("addr");*/
-  if(peersFilename)
-  {
-    log_info() << "Loading peers from file.";
-    std::ifstream infile(peersFilename);
-    std::string poundsign;
-    time_t timestamp;
-    uint16_t is_locked;
-    infile >> poundsign >> timestamp >> is_locked;
-    log_info() << "Reading " << peersFilename << "; poundsign=" << poundsign <<
-                  ", timestamp=" << timestamp << ", is_locked=" << is_locked;
-    struct peer_address addr;
-    int number_of_reads = 0;
-    while (infile >> addr.ip >> addr.port)
-    {
-     number_of_reads++;
-     if (number_of_reads < begin)
-       continue;
-     if ((end >= 0) && (number_of_reads > end))
-       break;
-     addr.failed_tries = 0;
-     addr.state = DISCONNECTED;
-     addr.numGetAddrToSend = numGetAddrToSend;
-     addr.addr_timeoffset = addr_timeoffset;
-     addr.pong_remained = 0;
-     addr.pong_waittime = 0;
-     addr.fGetAddrSentConfirmed = false;
-     addr.fInbound = false;
-     int i = 0;
-     for (i=1;i<=n;i++)
-     {
-       addr.instance_num = i;
-       mPeersAddresses[peer_address_to_string(addr)] = addr;
-     }
-    }
-    last_peers_updatetime = time(NULL);
-    peers_timestamp = timestamp;
-    log_info() << "Added " << mPeersAddresses.size() << " addresses";
+
+  if(peersFilename) {
+    loadPeersFromFile(peersFilename, addr_timeoffset, n);
   }
 
-
-  // optind >= argc means that there are no addresses from the command line
-  //if (optind >= argc && (mPeersAddresses.size() == 0)) {
-  //    printf("No peer addresses were provided\n");
-  //    printf("Try '%s -h' for more information\n", PACKAGE);
-  //    exit(1);
-  //}
-
   // *** 5. Load peers addresses from the command line ***
-  if (optind < argc)
-  {
-    log_info() << "Loading peer address from the command line.";
-    struct peer_address addr;
-    addr.ip = argv[optind];
-    addr.port = port;
-    addr.failed_tries = 0;
-    addr.state = DISCONNECTED;
-    addr.numGetAddrToSend = numGetAddrToSend;
-    addr.addr_timeoffset = addr_timeoffset;
-    addr.pong_remained = 0;
-    addr.pong_waittime = 0;
-    addr.fGetAddrSentConfirmed = false;
-    addr.fInbound = false;
-    //log_info() << "Adding " << peer_address_to_string(addr);
-    int i = 0;
-    for (i=n+1;i<=2*n;i++)
-    {
-      addr.instance_num = i;
-      mPeersAddresses[peer_address_to_string(addr)] = addr;
-    }
+  // optind >= argc means that there are no addresses from the command line
+  if (optind < argc) {
+    loadPeerFromCommandLine(argv[optind], port, addr_timeoffset, n);
   }
 
   // *** 4. Load blockhashes that we already know (so we don't request the whole blockchain) ***
-  if(blocksFilename)
-  {
-    log_info() << "Loading known block hashes.";
-    std::ifstream infile(blocksFilename);
-    std::string sBlockHash; // Block hash as hex string
-    log_info() << "Reading " << blocksFilename << " for known block hashes";
-    while (infile >> sBlockHash)
-    {
-      //log_debug() << "Reading " << sBlockHash;
-      std::istringstream buffer(sBlockHash);
-      hash_digest aBlockHash = decode_hex_digest<hash_digest>(sBlockHash); // Block hash as array<uint_8, 32>
-      old_blocks.insert(aBlockHash);
-    }
-    log_info() << "Size of old_blocks is  " << old_blocks.size();
+  if(blocksFilename) {
+    loadBlockhashes(blocksFilename);
   }
 
   // *** 6. Load Payload addresses ***
-  if(payloadAddrFilename && strlen(payloadAddrFilename) != 0)
-  {
-    log_info() << "Loading paylaod addresses for 'addr' messages.";
-    std::ifstream infile(payloadAddrFilename);
-    std::string address;
-    std::string sPort;
-    while (infile >> address >> sPort)
-      vPayloadAddresses.push_back(address+std::string(" ")+sPort);
-    if(vPayloadAddresses.size() == 0)
-    {
-      printf("Payload address is required.\n");
-      printf("Try '%s -h' for more information\n", PACKAGE);
-      exit(1);
-    }
+  if(payloadAddrFilename && strlen(payloadAddrFilename) != 0) {
+    loadPayloadAddresses(payloadAddrFilename);
   }
 
  
@@ -618,7 +546,7 @@ int main(int argc, char *argv[])
   log_info() << "Listen on port " << listen_port << "\n";
   net.listen(listen_port, std::bind(listening_started, _1, _2, listen_msgs, send_msgs));
   if (mPeersAddresses.size() != 0)
-    main_connect_loop(net, peersFilename, begin, end, listen_msgs, send_msgs);
+    main_connect_loop(net, peersFilename, listen_msgs, send_msgs);
   else
     log_info() << "No peers were provided. There will be no outgoing connections.";
 
@@ -629,20 +557,10 @@ int main(int argc, char *argv[])
   pool.join();
 
   // *** 8. Ask the user to dump received block hashes ***
-  if (!listen_msgs.empty() && !seen_blocks.empty())
-  {
+  if (!listen_msgs.empty() && !seen_blocks.empty()) {
     dump_block_hashes("blockhashes.dump");
-    //log_info() << "Do you want to dump block hashes (to 'blockhashes.dump')? (y/n): ";
-    //if(logFilename)
-    //  fprintf(stderr, "Do you want to dump block hashes (to 'blockhashes.dump')? (y/n): ");
-    //char answ[4];
-    //std::cin.getline(answ,4);
-    //if (strncmp(answ, "y",1) == 0)
-    //  dump_block_hashes("blockhashes.dump");
   }
-  log_info() << "Exited cleanely.";
-  if (logfile.is_open())
-    logfile.close();
+
   return 0;
 }
 

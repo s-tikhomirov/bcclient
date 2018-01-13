@@ -20,7 +20,7 @@ void output_to_terminal(log_level level, const std::string& domain, const std::s
 std::string format_ipv6addr(ip_address_type ip);
 std::string format_ipv4addr(ip_address_type ip);
 bool is_ipv4(ip_address_type ip);
-std::string peer_address_to_string(struct peer_address addr);
+std::string peer_address_to_string(peer_address addr);
 
 // String to bc address type conversion
 struct network_address_type make_bc_addr(const std::string ip_str, long int timestamp_offset);

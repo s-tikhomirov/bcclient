@@ -7,13 +7,10 @@
 
 #include <bitcoin/bitcoin.hpp>
 #include <string>
-//#include "util.hpp"
 
 using namespace bc;
 
-//Types
-enum connection_state
-{
+enum connection_state {
   CONNECTING,
   CONNECTED,
   DISCONNECTED
