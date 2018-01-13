@@ -194,31 +194,31 @@ void addr_sent(const std::error_code& ec, channel_ptr node, peer_address& remote
 
 void sendaddr(channel_ptr node, peer_address& remote_addr)
 {
-    struct address_type addr_message;
-    int i = 0;
-    for (i=0 ; i<vPayloadAddresses.size();i++)
+  struct address_type addr_message;
+  int i = 0;
+  for (i=0 ; i<vPayloadAddresses.size();i++)
+  {
+    network_address_type addr = make_bc_addr(vPayloadAddresses[i], remote_addr.addr_timeoffset);
+    if (addr.port == 0)
+      continue;
+    addr_message.addresses.push_back(addr);
+    if ( addr_message.addresses.size() >= addr_per_addr_message )
     {
-      network_address_type addr = make_bc_addr(vPayloadAddresses[i], remote_addr.addr_timeoffset);
-      if (addr.port == 0)
-        continue;
-      addr_message.addresses.push_back(addr);
-      if ( addr_message.addresses.size() >= addr_per_addr_message )
-      {
-	int msg_num = (i+1)/addr_per_addr_message;
-        log_info() << "Sending 'addr' message " << msg_num << ". Size = " << addr_message.addresses.size() <<
-	                ". peer=" << peer_address_to_string(remote_addr);
-        node->send(addr_message, std::bind(addr_sent, _1, node, remote_addr, i+1));
-	return;
-      }
-    }
-    if ( !(addr_message.addresses.empty()) )
-    {
-      int msg_num = (i+1)/addr_per_addr_message;
+  int msg_num = (i+1)/addr_per_addr_message;
       log_info() << "Sending 'addr' message " << msg_num << ". Size = " << addr_message.addresses.size() <<
-	                ". peer=" << peer_address_to_string(remote_addr);
-      node->send(addr_message, std::bind(addr_sent, _1, node, remote_addr,  i+1));
+                ". peer=" << peer_address_to_string(remote_addr);
+      node->send(addr_message, std::bind(addr_sent, _1, node, remote_addr, i+1));
+  return;
     }
-    return;
+  }
+  if ( !(addr_message.addresses.empty()) )
+  {
+    int msg_num = (i+1)/addr_per_addr_message;
+    log_info() << "Sending 'addr' message " << msg_num << ". Size = " << addr_message.addresses.size() <<
+                ". peer=" << peer_address_to_string(remote_addr);
+    node->send(addr_message, std::bind(addr_sent, _1, node, remote_addr,  i+1));
+  }
+  return;
 }
 
 void send_messages(std::vector<std::string> send_msgs, channel_ptr node, peer_address& remote_addr)
