@@ -30,9 +30,9 @@ run_test() {
 
 run_tests() {
 	echo "Running tests."
-	run_test "Connect to testnet node" "./target/bcclient $TESTNET_PEER_IP -p $TESTNET_PORT" "Verack received." 1
-	run_test "Connect to same peer twice" "./target/bcclient $TESTNET_PEER_IP -p $TESTNET_PORT -n 2" "Verack received." 2
-	run_test "Connect to 4 peers from peers.txt" "./target/bcclient -f peers.txt" "Verack received." 4
+	run_test "Connect to testnet node" "./bcclient $TESTNET_PEER_IP -p $TESTNET_PORT" "Verack received." 1
+	run_test "Connect to same peer twice" "./bcclient $TESTNET_PEER_IP -p $TESTNET_PORT -n 2" "Verack received." 2
+	run_test "Connect to 4 peers from peers.txt" "./bcclient -f peers.txt" "Verack received." 4
 	#run_test "Send getaddr, receive addr" "./target/bcclient $TESTNET_PEER_IP -p $TESTNET_PORT -s getaddr -l addr" "Address message received" 1 # must kill with Ctrl+C
 }
 

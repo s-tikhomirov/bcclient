@@ -16,7 +16,7 @@ OBJECTS 			= logger.o sendutil.o util.o rcvutil.o main.o
 
 SRC_DIR 			= ./src/
 INCLUDE_DIR			= ./include/
-TARGET_DIR			= ./target/
+TARGET_DIR			= ./
 
 all: $(OBJECTS) generate-addresses
 	@echo " CXX $(BCNAME)"
