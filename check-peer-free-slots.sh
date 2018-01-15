@@ -32,7 +32,7 @@ do
   echo "Checking addresses $i-$(($i+$NUM_PER_STEP-1)):"
   sed -n "$(($i+1)),$(($i+$NUM_PER_STEP))p" $peers_file
   echo -n "" > $BCCLIENT_LOGFILE # Empty temp log file
-  ./bcclient --delay 10000 --tries 1 -n $PAR_CONNECTIONS -l idle -o $BCCLIENT_LOGFILE -f $peers_file -b $i -e $(($i+$NUM_PER_STEP-1)) &  
+  ./bcclient --delay 10000 --tries 1 -n $PAR_CONNECTIONS -l idle -o $BCCLIENT_LOGFILE -f $peers_file  &  
 
   num_of_connected=$(./get-number-of-connected.sh $BCCLIENT_LOGFILE | grep Total | cut -f5 -d' ')
   if [ -z "$num_of_connected" ]

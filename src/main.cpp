@@ -508,13 +508,11 @@ int main(int argc, char *argv[])
   std::ofstream logfile;
   if(logFilename)
   {
-    std::cout << "Initializing logging to file." << std::endl;
     logfile.open(logFilename, std::ios_base::app);
     log_info().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
     log_debug().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
     log_error().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
   } else {
-    log_info() << "Initializing logging to colsole." << std::endl;
     log_info().set_output_function(output_to_terminal);
     log_debug().set_output_function(output_to_terminal);
     log_error().set_output_function(output_to_terminal);
