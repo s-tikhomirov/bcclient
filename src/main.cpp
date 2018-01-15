@@ -402,7 +402,9 @@ void loadPayloadAddresses(char *payloadAddrFilename) {
     }
 }
 
+void initialize_logger() {
 
+}
 
 /**** MAIN ****/
 
@@ -411,7 +413,7 @@ int main(int argc, char *argv[])
   char *peersFilename = NULL; // File with Vector of peers to which we will establish connections
   char *blocksFilename = NULL; // File with Vector of already known bock hashes. This is to avoid requesting old blocks
                                // The same file will be used for periodically dumping known hashes
-  std::string logFilename = ""; // where to put log messages, "" means print to terminal
+  char *logFilename = NULL; // where to put log messages, "" means print to terminal
 
   uint16_t port = 8333;  // Port of the peer specified in the command line
   uint16_t listen_port = 8333;  // Port on which we listen for incoming connections
@@ -503,8 +505,23 @@ int main(int argc, char *argv[])
   }
 
   // *** 2. Init the logger ***
-  Logger logger(logFilename, fPrintDebug);
-
+  std::ofstream logfile;
+  if(logFilename)
+  {
+    std::cout << "Initializing logging to file." << std::endl;
+    logfile.open(logFilename, std::ios_base::app);
+    log_info().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
+    log_debug().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
+    log_error().set_output_function(std::bind(output_to_file, std::ref(logfile), _1, _2, _3));
+  } else {
+    log_info() << "Initializing logging to colsole." << std::endl;
+    log_info().set_output_function(output_to_terminal);
+    log_debug().set_output_function(output_to_terminal);
+    log_error().set_output_function(output_to_terminal);
+  }  
+  if (!fPrintDebug) {
+    log_debug().set_output_function(std::bind(output_to_null, std::ref(logfile), _1, _2, _3));
+  }
 
   // *** 3. Load peers from the file (if provided) ***
   /* // If we asked to send getaddr, we need to listen to addr messages
