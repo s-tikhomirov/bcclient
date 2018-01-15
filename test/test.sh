@@ -1,15 +1,19 @@
 #!/bin/bash
 
-# Primitive sanity-check testing: just make and try to connect to one hard-coded testnet peer.
+# Primitive sanity-check testing
 
-#echo "Building..."
-# supress STDOUT but not STDERR
-#if ( make remake > /dev/null ) then
-#	echo "Build OK"
-	if ( ./target/bcclient 148.251.191.74 -p 18333 | grep -q "Version received") then
-		echo "Tests OK"
+run_test() {
+	echo -ne $1 ": "
+	if ( $2 | grep -q "$3" ) then
+		echo "OK"
 	else
-		echo "Tests not passed!"
+		echo "Not passed!"
 	fi
-#fi
+}
 
+run_tests() {
+	echo "Running tests."
+	run_test "Connect to testnet node" "./target/bcclient 148.251.191.74 -p 18333" "Verack received."
+}
+
+run_tests
