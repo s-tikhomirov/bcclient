@@ -2,6 +2,7 @@
  Distributed under the MIT/X11 software license, see the accompanying
  file LICENSE or http://www.opensource.org/licenses/mit-license.php. */
 
+#include "../include/constants.hpp"
 #include "../include/main.hpp"
 #include "../include/util.hpp"
 #include "../include/rcvutil.hpp"
@@ -456,14 +457,14 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
         ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x97}; // Despite the name, it's Recipient Address,  
 			                                                 // see ./include/bitcoin/satoshi_serialize.hpp +48 for serialization.
-    version.address_me.port = 8333;
+    version.address_me.port = BITCOIN_MAINNET_PORT;
     version.address_you.services = version.services;
     version.address_you.ip =
         ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98}; // It's Sender Address,
 			                                                 // let's put the students residence external ip address,
 									 // 
-    version.address_you.port = 8333;
+    version.address_you.port = BITCOIN_MAINNET_PORT;
     // Set the user agent.
     version.user_agent = "/xbadprobe:1.0/";
     version.start_height = 465166;

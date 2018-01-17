@@ -2,7 +2,7 @@
  Distributed under the MIT/X11 software license, see the accompanying
  file LICENSE or http://www.opensource.org/licenses/mit-license.php. */
 
-
+#include "../include/constants.hpp"
 #include "../include/util.hpp"
 #include "../include/rcvutil.hpp"
 #include "../include/main.hpp"
@@ -307,7 +307,7 @@ void print_help(int exval) {
   printf("    getaddr=<count> |                  message (don't forget to add '-l addr'); 'getaddr=3' sends 3 getaddr msgs.  \n");
   printf("    addr=<addr_file> |                 'addr=<addr_file>' sends messages with addresses found in <addr_file> ('IP PORT' per line)\n");
   printf("    addr=<addr_file>=<timestamp_offset> use <timestamp_offset> to offset addresses timestamps from current time (0 is default)        \n");
-  printf("  -p PORT                              PORT of the peer at IPADDR (default is 8333)                                \n");
+  printf("  -p PORT                              PORT of the peer at IPADDR (default is mainnet port - see constants.hpp)    \n");
   printf("  --listen-port PORT                   listen on this port                                                         \n");
   printf("  -o LOG_FILE                          redirect output to file'                                                    \n");
   printf("  -v                                   print debug info.                                                           \n");
@@ -423,8 +423,8 @@ int main(int argc, char *argv[])
                                // The same file will be used for periodically dumping known hashes
   char *logFilename = NULL; // where to put log messages, "" means print to terminal
 
-  uint16_t port = 8333;  // Port of the peer specified in the command line
-  uint16_t listen_port = 8333;  // Port on which we listen for incoming connections
+  uint16_t port = BITCOIN_MAINNET_PORT;  // Port of the peer specified in the command line
+  uint16_t listen_port = BITCOIN_MAINNET_PORT;  // Port on which we listen for incoming connections
   uint32_t n = 1; // Number of connections that will be established to each provided peer address
   bool fPrintDebug = false;
   int begin = 0;  // If a file with peers is proveded, read starting from this address
