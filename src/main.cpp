@@ -6,7 +6,6 @@
 #include "../include/util.hpp"
 #include "../include/rcvutil.hpp"
 #include "../include/main.hpp"
-#include "../include/logger.hpp"
 
 #include <iostream>
 #include <bitcoin/bitcoin.hpp>
