@@ -457,14 +457,14 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
         ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x97}; // Despite the name, it's Recipient Address,  
 			                                                 // see ./include/bitcoin/satoshi_serialize.hpp +48 for serialization.
-    version.address_me.port = BITCOIN_MAINNET_PORT;
+    version.address_me.port = CHOSEN_PORT;
     version.address_you.services = version.services;
     version.address_you.ip =
         ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98}; // It's Sender Address,
 			                                                 // let's put the students residence external ip address,
 									 // 
-    version.address_you.port = BITCOIN_MAINNET_PORT;
+    version.address_you.port = CHOSEN_PORT;
     // Set the user agent.
     version.user_agent = "/xbadprobe:1.0/";
     version.start_height = 465166;

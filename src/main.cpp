@@ -423,8 +423,8 @@ int main(int argc, char *argv[])
                                // The same file will be used for periodically dumping known hashes
   char *logFilename = NULL; // where to put log messages, "" means print to terminal
 
-  uint16_t port = BITCOIN_MAINNET_PORT;  // Port of the peer specified in the command line
-  uint16_t listen_port = BITCOIN_MAINNET_PORT;  // Port on which we listen for incoming connections
+  uint16_t port = CHOSEN_PORT;  // Port of the peer specified in the command line
+  uint16_t listen_port = CHOSEN_PORT;  // Port on which we listen for incoming connections
   uint32_t n = 1; // Number of connections that will be established to each provided peer address
   bool fPrintDebug = false;
   int begin = 0;  // If a file with peers is proveded, read starting from this address
