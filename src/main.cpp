@@ -210,10 +210,12 @@ void update_reported_connections_time(time_t report_connections_time, time_t del
        <state> is either 0 (file is unlocked) or 1 (file is locked).
 
    @In: <peers_file> -- file with ip addresses of peers (the file is periodically checked for updates)
+        <begin> -- start reading from this address number in <peer_file>
+        <end> -- end reading at this address number in <peer_file>
    @Out: <void>
    @Return: <void>
 */
-void main_connect_loop(network &net, char *peers_file, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
+void main_connect_loop(network &net, char *peers_file, int begin, int end, std::vector<std::string> listen_msgs, std::vector<std::string> send_msgs) {
 
   time_t report_connections_time = time(NULL);
 
@@ -232,7 +234,7 @@ void main_connect_loop(network &net, char *peers_file, std::vector<std::string> 
         if (do_stop_execution(stop_execution)) break;
       }
 
-      // * 2. Do the timestamp and lock checks; update global <mPeersAddresses> and reported_connections_time
+      // * 2. Do the timestamp and lock checks; update ~~global <mPeersAddresses>~~ reported_connections_time
       refresh_peers(peers_file, LOCK_FILE);
       update_reported_connections_time(report_connections_time, 300);
       usleep(delay_between_connections_micro);
@@ -317,11 +319,13 @@ void print_help(int exval) {
   printf("  --exit-when-all-connected            UNIMPLEMENTED stop the program when all connections are established         \n");
   printf("  -a, --seen-blocks BLOCK_HASHES_FILE  file with hashes of already known blocks (i.e. we will not request them)    \n");
   printf("  -n CONNECTIONS                       number of parallel connections to establish for each address (default is 1) \n");
+  printf("  -b NUM                               if -f is present, read addresses starting from NUM (inclusive)              \n");
+  printf("  -e NUM                               if -f is present, read addresses until NUM (inclusive)                      \n");
  
   exit(exval);
 }
 
-void loadPeersFromFile(char *peersFilename, int addr_timeoffset, int connectionsPerPeer) {  
+void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoffset, int connectionsPerPeer) {  
     log_info() << "Loading peers from file.";
     std::ifstream infile(peersFilename);
     std::string poundsign;
@@ -331,8 +335,13 @@ void loadPeersFromFile(char *peersFilename, int addr_timeoffset, int connections
     log_info() << "Reading " << peersFilename << "; poundsign=" << poundsign <<
                   ", timestamp=" << timestamp << ", is_locked=" << is_locked;
     peer_address addr;
-
+    int number_of_reads = 0;
     while (infile >> addr.ip >> addr.port) {
+     number_of_reads++;
+     if (number_of_reads < begin)
+       continue;
+     if ((end >= 0) && (number_of_reads > end))
+       break;
      addr.failed_tries = 0;
      addr.state = DISCONNECTED;
      addr.numGetAddrToSend = numGetAddrToSend;
@@ -418,7 +427,8 @@ int main(int argc, char *argv[])
   uint16_t listen_port = 8333;  // Port on which we listen for incoming connections
   uint32_t n = 1; // Number of connections that will be established to each provided peer address
   bool fPrintDebug = false;
-
+  int begin = 0;  // If a file with peers is proveded, read starting from this address
+  int end = -1 ;  // If a file with peers is proveded, read starting from this address, -1 means read till the end
   std::vector<std::string> listen_msgs;
   std::vector<std::string> send_msgs;
 
@@ -474,6 +484,12 @@ int main(int argc, char *argv[])
       case 'n':
         n = atoi(optarg);
         break;
+      case 'b':
+        begin = atoi(optarg);
+        break;
+      case 'e':
+        end = atoi(optarg);
+        break;
       case 'v':
         fPrintDebug = true;
         break;
@@ -526,7 +542,7 @@ int main(int argc, char *argv[])
     listen_msgs.push_back("addr");*/
 
   if(peersFilename) {
-    loadPeersFromFile(peersFilename, addr_timeoffset, n);
+    loadPeersFromFile(peersFilename, begin, end, addr_timeoffset, n);
   }
 
   // *** 5. Load peers addresses from the command line ***
@@ -560,7 +576,7 @@ int main(int argc, char *argv[])
   log_info() << "Listen on port " << listen_port << "\n";
   net.listen(listen_port, std::bind(listening_started, _1, _2, listen_msgs, send_msgs));
   if (mPeersAddresses.size() != 0)
-    main_connect_loop(net, peersFilename, listen_msgs, send_msgs);
+    main_connect_loop(net, peersFilename, begin, end, listen_msgs, send_msgs);
   else
     log_info() << "No peers were provided. There will be no outgoing connections.";
 
