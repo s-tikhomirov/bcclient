@@ -12,7 +12,7 @@ BCNAME 				= "bcclient"
 GENNAME 			= "generate-addresses"
 TAGFILES 			= GPATH GRTAGS GSYMS GTAGS tags
 
-OBJECTS 			= logger.o sendutil.o util.o rcvutil.o main.o
+OBJECTS 			= sendutil.o util.o rcvutil.o main.o
 
 SRC_DIR 			= ./src/
 INCLUDE_DIR			= ./include/
