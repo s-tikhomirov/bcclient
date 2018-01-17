@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
       {"tries", required_argument, NULL, 130},
       {"delay", required_argument, NULL, 131},
       {"addrmsg-size", required_argument, NULL, 132},
-      {"listen-port", required_argument, NULL, 133},
+      //{"listen-port", required_argument, NULL, 133},
       {"exit-when-all-connected", no_argument, &fExitWhenAllConnected, 1},
       {NULL, 0, NULL, 0}
   };
@@ -502,9 +502,9 @@ int main(int argc, char *argv[])
       case 132:
         addr_per_addr_message = atoi(optarg);
         break;
-      case 133:
-        listen_port = atoi(optarg);
-        break;
+      //case 133:
+      //  listen_port = atoi(optarg);
+      //  break;
       case ':':
         fprintf (stderr,"Option '%c' requires an argument.\n",optopt);
         printf("Try '%s -h' for more information\n", PACKAGE);
