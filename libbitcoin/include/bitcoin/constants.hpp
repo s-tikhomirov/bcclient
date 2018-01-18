@@ -35,9 +35,9 @@ constexpr uint64_t reward_interval = 210000;
 constexpr size_t coinbase_maturity = 100;
 
 #ifdef ENABLE_TESTNET
-constexpr uint32_t protocol_port = 18333;
+constexpr uint32_t protocol_port = 18233;	// Bitcoin: 18333, Zcash: 18233
 #else
-constexpr uint32_t protocol_port = 8333;
+constexpr uint32_t protocol_port = 8233;	// Bitcoin: 8333, Zcash: 8233
 #endif
 
 // Threshold for nLockTime: below this value it is

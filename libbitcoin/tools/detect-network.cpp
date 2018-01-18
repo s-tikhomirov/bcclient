@@ -25,7 +25,7 @@
 using namespace bc;
 int main(int argc, char** argv)
 {
-	switch(magic_value())
+	switch(magic_value())	// little-endian
 	{
 		case 0xd9b4bef9:
 			std::cout << "Network: mainnet" << std::endl;
@@ -33,6 +33,14 @@ int main(int argc, char** argv)
 
 		case 0x0709110b:
 			std::cout << "Network: testnet3" << std::endl;
+			break;
+
+		case 0x6427e924:
+			std::cout << "Network: Zcash mainnet" << std::endl;
+			break;
+
+		case 0xbff91afa:
+			std::cout << "Network: Zcash testnet" << std::endl;
 			break;
 
 		default:

@@ -31,9 +31,11 @@ big_number max_target()
 uint32_t magic_value()
 {
 	#ifdef ENABLE_TESTNET
-	return 0x0709110b;
+	//return 0x0709110b;	// Bitcoin testnet
+	return 0xbff91afa;	// Zcash testnet
 	#else
-	return 0xd9b4bef9;
+	//return 0xd9b4bef9;	// Bitcoin mainnet
+	return 0x6427e924;	// Zcash mainnet
 	#endif
 }
 } // namespace libbitcoin

@@ -449,26 +449,31 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
     // Create our version message we want to send.
     // Fill in a bunch of fields.
     version_type version;
-    version.version = 70014;
-    version.services = 7;
+    version.version = 170002; // was: 70014;
+    version.services = 1; // was: 7
     version.timestamp = time(NULL);
     version.address_me.services = version.services;
+    // was: 0xd8, 0x96, 0x9b, 0x97
+    // Zcashd (experiment) last 4 octets: 0x68, 0xec, 0xb4, 0xe7
     version.address_me.ip =
         ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x97}; // Despite the name, it's Recipient Address,  
+                        0x00, 0x00, 0xff, 0xff, 0x68, 0xec, 0xb4, 0xe7}; // Despite the name, it's Recipient Address,  
 			                                                 // see ./include/bitcoin/satoshi_serialize.hpp +48 for serialization.
+
     version.address_me.port = CHOSEN_PORT;
     version.address_you.services = version.services;
+    // was: 0xd8, 0x96, 0x9b, 0x98
+    // Zcashd (experiment) last 4 octets: 0x5a, 0xf7, 0xbd, 0x26
     version.address_you.ip =
         ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98}; // It's Sender Address,
+                        0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26}; // It's Sender Address,
 			                                                 // let's put the students residence external ip address,
 									 // 
     version.address_you.port = CHOSEN_PORT;
     // Set the user agent.
     version.user_agent = "/xbadprobe:1.0/";
-    version.start_height = 465166;
-    version.nonce = rand();
+    version.start_height = 256748; //was: 465166;
+    version.nonce = rand(); //18446744073709551615-256;
 
     subscribe_to_events(node, listen_msgs, send_msgs, remote_addr);
 
@@ -477,7 +482,7 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
     node->send(version, std::bind(version_sent, _1, node));
     verack_type verack1;
     log_info() << "Sending verack";
-    node->send(verack1, std::bind(verack_sent, _1, node));
+    node->send(verack1, std::bind(verack_sent, _1, node));  // FIXME: send verack conditionally
     return;
 }
 
