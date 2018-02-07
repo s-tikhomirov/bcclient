@@ -174,6 +174,9 @@ void try_connect(network &net, peer_address &addr, std::vector<std::string> list
     log_info() << "Connecting to "  << peer_address_to_string(addr) << " (try " << addr.failed_tries+1 << ")";
     num_open_connections++; // global variable; shows the number of open connections. Dercrements when a connection is closed
     addr.state = CONNECTING;
+    if (!listen_msgs.empty()) {
+      log_info() << "Listeing to message types: " << boost::algorithm::join(listen_msgs, ", ");
+    }
     net.connect(addr.ip, addr.port, std::bind(connect_started, _1, _2, addr, listen_msgs, send_msgs));
     usleep(delay_between_connections_micro);
 }
