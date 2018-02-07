@@ -337,23 +337,24 @@ void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoff
     peer_address addr;
     int number_of_reads = 0;
     while (infile >> addr.ip >> addr.port) {
-     number_of_reads++;
-     if (number_of_reads < begin)
-       continue;
-     if ((end >= 0) && (number_of_reads > end))
-       break;
-     addr.failed_tries = 0;
-     addr.state = DISCONNECTED;
-     addr.numGetAddrToSend = numGetAddrToSend;
-     addr.addr_timeoffset = addr_timeoffset;
-     addr.pong_remained = 0;
-     addr.pong_waittime = 0;
-     addr.fGetAddrSentConfirmed = false;
-     addr.fInbound = false;
-     int i = 0;
-     for (i = 1; i <= connectionsPerPeer; i++) {
-       addr.instance_num = i;
-       mPeersAddresses[peer_address_to_string(addr)] = addr;
+      if (addr.ip.substr(0, 1) == "#") continue; // so that we can comment out addresses in peers file
+      number_of_reads++;
+      if (number_of_reads < begin)
+        continue;
+      if ((end >= 0) && (number_of_reads > end))
+        break;
+      addr.failed_tries = 0;
+      addr.state = DISCONNECTED;
+      addr.numGetAddrToSend = numGetAddrToSend;
+      addr.addr_timeoffset = addr_timeoffset;
+      addr.pong_remained = 0;
+      addr.pong_waittime = 0;
+      addr.fGetAddrSentConfirmed = false;
+      addr.fInbound = false;
+      int i = 0;
+      for (i = 1; i <= connectionsPerPeer; i++) {
+        addr.instance_num = i;
+        mPeersAddresses[peer_address_to_string(addr)] = addr;
       }
     }
     last_peers_updatetime = time(NULL);
