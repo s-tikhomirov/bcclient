@@ -460,7 +460,7 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
                         0x00, 0x00, 0xff, 0xff, 0x68, 0xec, 0xb4, 0xe7}; // Despite the name, it's Recipient Address,  
 			                                                 // see ./include/bitcoin/satoshi_serialize.hpp +48 for serialization.
 
-    version.address_me.port = CHOSEN_PORT;
+    version.address_me.port = DEFAULT_PORT;
     version.address_you.services = version.services;
     // was: 0xd8, 0x96, 0x9b, 0x98
     // Zcashd (experiment) last 4 octets: 0x5a, 0xf7, 0xbd, 0x26
@@ -469,7 +469,7 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
                         0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26}; // It's Sender Address,
 			                                                 // let's put the students residence external ip address,
 									 // 
-    version.address_you.port = CHOSEN_PORT;
+    version.address_you.port = DEFAULT_PORT;
     // Set the user agent.
     version.user_agent = "/xbadprobe:1.0/";
     version.start_height = 256748; //was: 465166;
