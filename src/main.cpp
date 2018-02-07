@@ -411,9 +411,6 @@ void loadPayloadAddresses(char *payloadAddrFilename) {
     }
 }
 
-void initialize_logger() {
-
-}
 
 /**** MAIN ****/
 
