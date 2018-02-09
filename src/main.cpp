@@ -240,7 +240,7 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
 
       // * 2. Do the timestamp and lock checks; update ~~global <mPeersAddresses>~~ reported_connections_time
       refresh_peers(peers_file, LOCK_FILE);
-      update_reported_connections_time(report_connections_time, 300);
+      //update_reported_connections_time(report_connections_time, 300); // FIXME: falls into endless loop
       
       if (do_stop_execution(stop_execution)) break;
     }
@@ -258,7 +258,7 @@ void main_connect_loop(network &net, char *peers_file, int begin, int end, std::
     // Wait until all connections are closed (i.e. we recevied all version messages or timeout)
     while (num_open_connections != 0)
     {
-      update_reported_connections_time(report_connections_time, 10);
+      //update_reported_connections_time(report_connections_time, 10); // FIXME: falls into endless loop
       if (do_stop_execution(stop_execution)) break;
     }
     stop_execution = true; // Set to true, so that the main thread knows that we are done.
