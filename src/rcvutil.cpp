@@ -472,7 +472,7 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
     version.address_you.port = DEFAULT_PORT;
     // Set the user agent.
     version.user_agent = "/xbadprobe:1.0/";
-    version.start_height = 256748; //was: 465166;
+    version.start_height = 192404; //Replace with ~recent block number (NB testnet / mainnet). Bitcoin was: 465166, Zcash: 256748;
     version.nonce = rand(); //18446744073709551615-256;
 
     subscribe_to_events(node, listen_msgs, send_msgs, remote_addr);
