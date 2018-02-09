@@ -42,7 +42,7 @@ This software relies on a specific commit of libbitcoin (and probably
 will not work with other commits). This specific commit is included and
 you have to compile it first.
 
-	$ sudo apt-get install build-essential autoconf automake libtool libboost-all-dev pkg-config libcurl4-openssl-dev libleveldb-dev shtool
+	$ sudo apt-get install build-essential autoconf automake libtool libboost-all-dev pkg-config libcurl4-openssl-dev libleveldb-dev shtool libssl-dev
 	$ cd libbitcoin
 	$ ln -s $(which shtool)
 	$ autoreconf -i
