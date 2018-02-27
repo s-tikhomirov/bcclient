@@ -108,7 +108,6 @@ In order to use the tool with Zcash or other blockchain with similar networking 
 
 | Parameter  	| Source file | Bitcoin main | Bitcoin test | Zcash main | Zcash test |
 | ------------- | ------------- | ------------- | ------------- |------------- |------------- |
-| Port number	| `include/constants.cpp`  | 8333 | 18333  | 8233 | 18233  |
 | Port number	| `libbitcoin/include/bitcoin/constants.hpp`  | 8333 | 18333  | 8233 | 18233  |
 | Magic values	| `libbitcoin/src/constants.cpp`  | `0xd9b4bef9` | `0x0709110b`  | `0x6427e924` | `0xbff91afa`  |
 | version.version  | `src/rcvutil.cpp`  | 70014 | 70014 | | 170002 |
