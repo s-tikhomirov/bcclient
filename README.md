@@ -100,3 +100,19 @@ In order to put everything back:
 ## Output format 
 When ./bcclient receives a transaction it prints by default it in a
 succinct way. In order to include fields description, use '-v' flag. 
+
+## Adaptation for other blockchains
+This reposiroty is a fork of the original [bcclient](https://github.com/ivanpustogarov/bcclient). Its main goal is to do security research for the Zcash cryptocurrency. After some refactoring, the code was modified to be used with Zcash.
+
+In order to use the tool with Zcash or other blockchain with similar networking properties, change the following:
+
+| Parameter  	| Source file | Bitcoin main | Bitcoin test | Zcash main | Zcash test |
+| ------------- | ------------- | ------------- | ------------- |------------- |------------- |
+| Port number	| `include/constants.cpp`  | 8333 | 18333  | 8233 | 18233  |
+| Port number	| `libbitcoin/include/bitcoin/constants.hpp`  | 8333 | 18333  | 8233 | 18233  |
+| Magic values	| `libbitcoin/src/constants.cpp`  | `0xd9b4bef9` | `0x0709110b`  | `0x6427e924` | `0xbff91afa`  |
+| version.version  | `src/rcvutil.cpp`  | 70014 |  | | 170002 |
+| version.services  | `src/rcvutil.cpp`  | 7 |  | | 1 |
+| address_me.ip (last 4 octets)	| `src/rcvutil.cpp`  | 0xd8, 0x96, 0x9b, 0x97 | | | 0x68, 0xec, 0xb4, 0xe7 |
+| address_you.ip (last 4 octets) | `src/rcvutil.cpp` | 0xd8, 0x96, 0x9b, 0x98 | | | 0x5a, 0xf7, 0xbd, 0x26 |
+| start_height	| `src/rcvutil.cpp` (`connect_started()`)  | lookup recent block height | lookup recent block height | lookup recent block height | lookup recent block height |
