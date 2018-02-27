@@ -13,7 +13,9 @@ network=$1
 
 if [ "$network"	 = "mainnet" ]; then
 	echo "building for" $network "..."
+	make clean
 	cd libbitcoin
+	make clean
 	ln -s $(which shtool)
 	autoreconf -i
 	./configure --enable-leveldb
