@@ -14,6 +14,76 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
 
+// Create our version message we want to send.
+// Depends on the network chosen in include/constants.hpp
+// Don't forget to update start_height to a recent block.
+version_type my_version() {
+
+  version_type version;
+
+  switch (NETWORK) {
+    case Network::BITCOIN_MAINNET:
+      version.version = 70014;
+      version.services = 7;
+      version.address_me.ip =
+      ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x97}; // Despite the name, it's Recipient Address,  
+                                                     // see ./include/bitcoin/satoshi_serialize.hpp +48 for serialization.
+      version.address_you.ip =
+      ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98}; // It's Sender Address,
+                                                     // let's put the students residence external ip address,
+      version.start_height = 511313;
+      break;
+    case Network::BITCOIN_TESTNET:
+      version.version = 70014;
+      version.services = 7;
+      version.address_me.ip =
+        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x97};
+      version.address_you.ip =
+        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98};
+      version.start_height = 1286853;
+      break;
+    case Network::ZCASH_MAINNET:  // FIXME: Unable to reach remote network
+      version.version = 170002;
+      version.services = 1;
+      version.address_me.ip =
+        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0x68, 0xec, 0xb4, 0xe7};
+
+      version.address_you.ip =
+        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26};
+      version.start_height = 280150;
+      break;
+    case Network::ZCASH_TESTNET:
+      version.timestamp = time(NULL);
+      version.version = 170002;
+      version.services = 1;
+      version.address_me.ip =
+        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0x68, 0xec, 0xb4, 0xe7};
+      version.address_you.ip =
+        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                      0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26};
+      version.start_height = 196486;
+      break;
+  }
+
+  version.timestamp = time(NULL);
+  version.user_agent = "/xbadprobe:1.0/";
+  version.nonce = rand();
+  version.address_me.port = DEFAULT_PORT;
+  version.address_you.port = DEFAULT_PORT;
+  version.address_me.services = version.services;
+  version.address_you.services = version.services;
+
+  return version;
+}
+
+
 void version_sent(const std::error_code& ec, channel_ptr node)
 {
     if (ec)
@@ -445,41 +515,10 @@ void connect_started(const std::error_code& ec, channel_ptr node, peer_address& 
         return;
     }
 
-
-    // Create our version message we want to send.
-    // Fill in a bunch of fields.
-    version_type version;
-    version.version = 170002; // was: 70014;
-    version.services = 1; // was: 7
-    version.timestamp = time(NULL);
-    version.address_me.services = version.services;
-    // was: 0xd8, 0x96, 0x9b, 0x97
-    // Zcashd (experiment) last 4 octets: 0x68, 0xec, 0xb4, 0xe7
-    version.address_me.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0xff, 0xff, 0x68, 0xec, 0xb4, 0xe7}; // Despite the name, it's Recipient Address,  
-			                                                 // see ./include/bitcoin/satoshi_serialize.hpp +48 for serialization.
-
-    version.address_me.port = DEFAULT_PORT;
-    version.address_you.services = version.services;
-    // was: 0xd8, 0x96, 0x9b, 0x98
-    // Zcashd (experiment) last 4 octets: 0x5a, 0xf7, 0xbd, 0x26
-    version.address_you.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26}; // It's Sender Address,
-			                                                 // let's put the students residence external ip address,
-									 // 
-    version.address_you.port = DEFAULT_PORT;
-    // Set the user agent.
-    version.user_agent = "/xbadprobe:1.0/";
-    version.start_height = 192404; //Replace with ~recent block number (NB testnet / mainnet). Bitcoin was: 465166, Zcash: 256748;
-    version.nonce = rand(); //18446744073709551615-256;
-
     subscribe_to_events(node, listen_msgs, send_msgs, remote_addr);
 
-    // Finally send version message
     log_info() << "Sending version message";
-    node->send(version, std::bind(version_sent, _1, node));
+    node->send(my_version(), std::bind(version_sent, _1, node));
     verack_type verack1;
     log_info() << "Sending verack";
     node->send(verack1, std::bind(verack_sent, _1, node));  // FIXME: send verack conditionally
