@@ -35,10 +35,18 @@ constexpr uint64_t reward_interval = 210000;
 constexpr size_t coinbase_maturity = 100;
 
 #ifdef ENABLE_TESTNET
-constexpr uint32_t protocol_port = 18233;	// Bitcoin: 18333, Zcash: 18233
+//constexpr uint32_t magic_value = 0x0709110b; // Bitcoin testnet
+constexpr uint32_t magic_value_ = 0xbff91afa; // Zcash testnet
 #else
-constexpr uint32_t protocol_port = 8233;	// Bitcoin: 8333, Zcash: 8233
+//constexpr uint32_t magic_value = 0xd9b4bef9; // Bitcoin mainnet
+constexpr uint32_t magic_value_ = 0x6427e924; // Zcash mainnet
 #endif
+
+constexpr uint32_t protocol_port = 
+		(magic_value_ == 0xd9b4bef9) ? 8333 : 
+		(magic_value_ == 0x0709110b) ? 18333 : 
+		(magic_value_ == 0x6427e924) ? 8233 : 
+		(magic_value_ == 0xbff91afa) ? 18233 : 0;
 
 // Threshold for nLockTime: below this value it is
 // interpreted as block number, otherwise as UNIX timestamp.
