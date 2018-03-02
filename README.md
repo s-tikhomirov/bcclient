@@ -108,8 +108,7 @@ In order to use the tool with Zcash or other blockchain with similar networking 
 
 | Parameter  	| Source file | Bitcoin main | Bitcoin test | Zcash main | Zcash test |
 | ------------- | ------------- | ------------- | ------------- |------------- |------------- |
-| Network	| `include/constants.hpp`  | `BITCOIN_MAINNET` | `BITCOIN_TESTNET`  | `ZCASH_MAINNET` | `ZCASH_TESTNET`  |
 | Port number	| `libbitcoin/include/bitcoin/constants.hpp`  | 8333 | 18333  | 8233 | 18233  |
 | Magic values	| `libbitcoin/src/constants.cpp`  | `0xd9b4bef9` | `0x0709110b`  | `0x6427e924` | `0xbff91afa`  |
 
-Additionally, update `version.start_height` in `src/rcvutil.cpp` (function `my_version()`) to a recent block (look it up on a blockchain explorer: Bitcoin [mainnet](https://live.blockcypher.com/btc/) / [testnet](https://live.blockcypher.com/btc-testnet/), Zcash [mainnet](https://explorer.zcha.in/blocks) / [testnet](https://explorer.testnet.z.cash/blocks)).
+If necessary, update `version.start_height` in `src/rcvutil.cpp` (function `my_version()`) to a recent block (look it up on a blockchain explorer: Bitcoin [mainnet](https://live.blockcypher.com/btc/) / [testnet](https://live.blockcypher.com/btc-testnet/), Zcash [mainnet](https://explorer.zcha.in/blocks) / [testnet](https://explorer.testnet.z.cash/blocks).
