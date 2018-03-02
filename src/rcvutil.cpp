@@ -59,7 +59,6 @@ version_type my_version() {
       version.start_height = 280150;
       break;
     case Network::ZCASH_TESTNET:
-      version.timestamp = time(NULL);
       version.version = 170002;
       version.services = 1;
       version.address_me.ip =
