@@ -15,7 +15,6 @@ using std::placeholders::_2;
 using std::placeholders::_3;
 
 // Create our version message we want to send.
-// Depends on the network chosen in include/constants.hpp
 // Don't forget to update start_height to a recent block.
 version_type my_version() {
 
