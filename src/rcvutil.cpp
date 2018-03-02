@@ -20,9 +20,10 @@ using std::placeholders::_3;
 version_type my_version() {
 
   version_type version;
+  uint32_t magic_value = libbitcoin::magic_value();
 
-  switch (NETWORK) {
-    case Network::BITCOIN_MAINNET:
+  switch (magic_value) {
+    case 0xd9b4bef9:  // Bitcoin mainnet
       version.version = 70014;
       version.services = 7;
       version.address_me.ip =
@@ -35,7 +36,7 @@ version_type my_version() {
                                                      // let's put the students residence external ip address,
       version.start_height = 511313;
       break;
-    case Network::BITCOIN_TESTNET:
+    case 0x0709110b:  // Bitcoin testnet
       version.version = 70014;
       version.services = 7;
       version.address_me.ip =
@@ -46,7 +47,7 @@ version_type my_version() {
                       0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98};
       version.start_height = 1286853;
       break;
-    case Network::ZCASH_MAINNET:  // FIXME: Unable to reach remote network
+    case 0x6427e924:  // Zcash mainnet // FIXME: Unable to reach remote network
       version.version = 170002;
       version.services = 1;
       version.address_me.ip =
@@ -58,7 +59,7 @@ version_type my_version() {
                       0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26};
       version.start_height = 280150;
       break;
-    case Network::ZCASH_TESTNET:
+    case 0xbff91afa:  // Zcash testnet
       version.version = 170002;
       version.services = 1;
       version.address_me.ip =
@@ -68,6 +69,9 @@ version_type my_version() {
         ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                       0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26};
       version.start_height = 196486;
+      break;
+    default:
+      log_error() << "Unknown network! Magic value: " << magic_value;
       break;
   }
 
