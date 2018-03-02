@@ -310,8 +310,8 @@ void print_help(int exval) {
   printf("    getaddr=<count> |                  message (don't forget to add '-l addr'); 'getaddr=3' sends 3 getaddr msgs.  \n");
   printf("    addr=<addr_file> |                 'addr=<addr_file>' sends messages with addresses found in <addr_file> ('IP PORT' per line)\n");
   printf("    addr=<addr_file>=<timestamp_offset> use <timestamp_offset> to offset addresses timestamps from current time (0 is default)        \n");
-  printf("  -p PORT                              PORT of the peer at IPADDR (default is mainnet port - see constants.hpp)    \n");
-  printf("  --listen-port PORT                   listen on this port                                                         \n");
+//  printf("  -p PORT                              PORT of the peer at IPADDR (default is mainnet port - see constants.hpp)    \n");
+//  printf("  --listen-port PORT                   listen on this port                                                         \n");
   printf("  -o LOG_FILE                          redirect output to file'                                                    \n");
   printf("  -v                                   print debug info.                                                           \n");
   printf("                                                                                                                   \n");
@@ -424,8 +424,7 @@ int main(int argc, char *argv[])
                                // The same file will be used for periodically dumping known hashes
   char *logFilename = NULL; // where to put log messages, "" means print to terminal
 
-  uint16_t port = DEFAULT_PORT;  // Port of the peer specified in the command line
-  uint16_t listen_port = DEFAULT_PORT;  // Port on which we listen for incoming connections
+  uint16_t port = PORTS.at(libbitcoin::magic_value());
 
   uint32_t n = 1; // Number of connections that will be established to each provided peer address
   bool fPrintDebug = false;
@@ -471,9 +470,9 @@ int main(int argc, char *argv[])
         if(parse_send_messages(optarg, send_msgs, &numGetAddrToSend, payloadAddrFilename, &addr_timeoffset) < 0)
 	  return 1;
         break;
-      case 'p':
-        port = atoi(optarg);
-        break;
+      //case 'p':
+      //  port = atoi(optarg);
+      //  break;
       case 'f':
         peersFilename = optarg;
         break;
@@ -562,7 +561,6 @@ int main(int argc, char *argv[])
   if(payloadAddrFilename && strlen(payloadAddrFilename) != 0) {
     loadPayloadAddresses(payloadAddrFilename);
   }
-
  
   // *** 7. Start the main loop ***
   //log_info() << "Starting main loop.";
@@ -575,8 +573,8 @@ int main(int argc, char *argv[])
 
   threadpool pool(THREADS);
   network net(pool);
-  log_info() << "Listen on port " << listen_port << "\n";
-  net.listen(listen_port, std::bind(listening_started, _1, _2, listen_msgs, send_msgs));
+  log_info() << "Listen on port " << port << "\n";
+  net.listen(port, std::bind(listening_started, _1, _2, listen_msgs, send_msgs));
   if (mPeersAddresses.size() != 0)
     main_connect_loop(net, peersFilename, begin, end, listen_msgs, send_msgs);
   else

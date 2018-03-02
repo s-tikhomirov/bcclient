@@ -77,8 +77,8 @@ version_type my_version() {
   version.timestamp = time(NULL);
   version.user_agent = "/xbadprobe:1.0/";
   version.nonce = rand();
-  version.address_me.port = DEFAULT_PORT;
-  version.address_you.port = DEFAULT_PORT;
+  version.address_me.port = PORTS.at(magic_value);
+  version.address_you.port = PORTS.at(magic_value);
   version.address_me.services = version.services;
   version.address_you.services = version.services;
 
