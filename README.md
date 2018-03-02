@@ -104,10 +104,10 @@ succinct way. In order to include fields description, use '-v' flag.
 ## Adaptation for other blockchains
 This reposiroty is a fork of the original [bcclient](https://github.com/ivanpustogarov/bcclient). Its main goal is to do security research for the Zcash cryptocurrency. After some refactoring, the code was modified to be used with Zcash.
 
-In order to use the tool with Zcash or other blockchain with similar networking properties, you only have to change the magic values (port numbers will be chosen automatically):
+In order to use the tool with Zcash or other blockchain with similar networking properties, you only have to change the corresponding parameter in `libbitcoin/src/constants.cpp`, for intance for Zcash (mainnet / testnet is determined by a compilation parameter):
 
-| Parameter  	| Source file | Bitcoin main | Bitcoin test | Zcash main | Zcash test |
-| ------------- | ------------- | ------------- | ------------- |------------- |------------- |
-| Magic values	| `libbitcoin/src/constants.cpp`  | `0xd9b4bef9` | `0x0709110b`  | `0x6427e924` | `0xbff91afa`  |
+```
+constexpr Chain chosen_chain = Chain::ZCASH;
+```
 
 If necessary, update `version.start_height` in `include/constants.hpp` to a recent block (look it up on a blockchain explorer: Bitcoin [mainnet](https://live.blockcypher.com/btc/) / [testnet](https://live.blockcypher.com/btc-testnet/), Zcash [mainnet](https://explorer.zcha.in/blocks) / [testnet](https://explorer.testnet.z.cash/blocks).
