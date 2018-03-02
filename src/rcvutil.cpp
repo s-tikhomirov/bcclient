@@ -21,64 +21,16 @@ version_type my_version() {
   version_type version;
   uint32_t magic_value = libbitcoin::magic_value();
 
-  switch (magic_value) {
-    case 0xd9b4bef9:  // Bitcoin mainnet
-      version.version = 70014;
-      version.services = 7;
-      version.address_me.ip =
-      ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x97}; // Despite the name, it's Recipient Address,  
-                                                     // see ./include/bitcoin/satoshi_serialize.hpp +48 for serialization.
-      version.address_you.ip =
-      ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98}; // It's Sender Address,
-                                                     // let's put the students residence external ip address,
-      version.start_height = 511313;
-      break;
-    case 0x0709110b:  // Bitcoin testnet
-      version.version = 70014;
-      version.services = 7;
-      version.address_me.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x97};
-      version.address_you.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0xd8, 0x96, 0x9b, 0x98};
-      version.start_height = 1286853;
-      break;
-    case 0x6427e924:  // Zcash mainnet // FIXME: Unable to reach remote network
-      version.version = 170002;
-      version.services = 1;
-      version.address_me.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0x68, 0xec, 0xb4, 0xe7};
-
-      version.address_you.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26};
-      version.start_height = 280150;
-      break;
-    case 0xbff91afa:  // Zcash testnet
-      version.version = 170002;
-      version.services = 1;
-      version.address_me.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0x68, 0xec, 0xb4, 0xe7};
-      version.address_you.ip =
-        ip_address_type{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                      0x00, 0x00, 0xff, 0xff, 0x5a, 0xf7, 0xbd, 0x26};
-      version.start_height = 196486;
-      break;
-    default:
-      log_error() << "Unknown network! Magic value: " << magic_value;
-      break;
-  }
-
   version.timestamp = time(NULL);
   version.user_agent = "/xbadprobe:1.0/";
   version.nonce = rand();
-  version.address_me.port = PORTS.at(magic_value);
-  version.address_you.port = PORTS.at(magic_value);
+  version.address_me.ip = ADDRESS_ME.at(magic_value);
+  version.address_you.ip = ADDRESS_YOU.at(magic_value);
+  version.version = VERSION.at(magic_value);
+  version.services = SERVICES.at(magic_value);
+  version.start_height = RECENT_HEIGHT.at(magic_value);
+  version.address_me.port = PORT.at(magic_value);
+  version.address_you.port = PORT.at(magic_value);
   version.address_me.services = version.services;
   version.address_you.services = version.services;
 
