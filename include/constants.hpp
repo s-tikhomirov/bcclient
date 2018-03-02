@@ -39,8 +39,8 @@ const std::map<uint32_t, uint16_t> PORT = {
 const std::map<uint32_t, uint32_t> VERSION = {
 	{0xd9b4bef9, 70014},		// Bitcoin mainnet
 	{0x0709110b, 70014},		// Bitcoin testnet
-	{0x6427e924, 170002},		// Zcash mainnet
-	{0xbff91afa, 170002}		// Zcash testnet
+	{0x6427e924, 170003},		// Zcash mainnet
+	{0xbff91afa, 170003}		// Zcash testnet
 };
 
 const std::map<uint32_t, uint32_t> SERVICES = {
