@@ -34,12 +34,21 @@ constexpr uint64_t reward_interval = 210000;
 
 constexpr size_t coinbase_maturity = 100;
 
+enum Chain {
+	BITCOIN,
+	ZCASH
+};
+
+constexpr Chain chosen_chain = Chain::ZCASH;
+
 #ifdef ENABLE_TESTNET
-//constexpr uint32_t magic_value = 0x0709110b; // Bitcoin testnet
-constexpr uint32_t magic_value_ = 0xbff91afa; // Zcash testnet
-#else
-//constexpr uint32_t magic_value = 0xd9b4bef9; // Bitcoin mainnet
-constexpr uint32_t magic_value_ = 0x6427e924; // Zcash mainnet
+constexpr uint32_t magic_value_ = 
+	(chosen_chain == Chain::BITCOIN) ? 0x0709110b :	// Bitcoin testnet
+	(chosen_chain == Chain::ZCASH) ? 0xbff91afa : 0;	// Zcash testnet
+#else	
+constexpr uint32_t magic_value_ = 
+	(chosen_chain == Chain::BITCOIN) ? 0xd9b4bef9 :	// Bitcoin mainnet
+	(chosen_chain == Chain::ZCASH) ? 0x6427e924 : 0;	// Zcash mainnet
 #endif
 
 constexpr uint32_t protocol_port = 
