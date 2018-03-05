@@ -414,7 +414,7 @@ void loadPayloadAddresses(char *payloadAddrFilename) {
     }
 }
 
-std::string networkName(uint32_t magic_value) {
+const std::string networkName(uint32_t magic_value) {
   switch(magic_value) {
     case 0xd9b4bef9:
       return "Bitcoin mainnet";
