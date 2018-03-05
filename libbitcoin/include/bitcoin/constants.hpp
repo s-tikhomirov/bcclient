@@ -39,7 +39,7 @@ enum Chain {
 	ZCASH
 };
 
-constexpr Chain chosen_chain = Chain::ZCASH;
+constexpr Chain chosen_chain = Chain::BITCOIN;
 
 #ifdef ENABLE_TESTNET
 constexpr uint32_t magic_value_ = 
