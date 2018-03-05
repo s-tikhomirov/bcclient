@@ -328,7 +328,7 @@ void print_help(int exval) {
   exit(exval);
 }
 
-void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoffset, int connectionsPerPeer) {  
+void loadPeersFromFile(char *peersFilename, uint16_t default_port, int begin, int end, int addr_timeoffset, int connectionsPerPeer) {  
     log_info() << "Loading peers from file.";
     std::ifstream infile(peersFilename);
     std::string poundsign;
@@ -339,13 +339,14 @@ void loadPeersFromFile(char *peersFilename, int begin, int end, int addr_timeoff
                   ", timestamp=" << timestamp << ", is_locked=" << is_locked;
     peer_address addr;
     int number_of_reads = 0;
-    while (infile >> addr.ip >> addr.port) {
+    while (infile >> addr.ip) {
       if (addr.ip.substr(0, 1) == "#") continue; // so that we can comment out addresses in peers file
       number_of_reads++;
       if (number_of_reads < begin)
         continue;
       if ((end >= 0) && (number_of_reads > end))
         break;
+      addr.port = default_port;
       addr.failed_tries = 0;
       addr.state = DISCONNECTED;
       addr.numGetAddrToSend = numGetAddrToSend;
@@ -564,7 +565,7 @@ int main(int argc, char *argv[])
     listen_msgs.push_back("addr");*/
 
   if(peersFilename) {
-    loadPeersFromFile(peersFilename, begin, end, addr_timeoffset, n);
+    loadPeersFromFile(peersFilename, port, begin, end, addr_timeoffset, n);
   }
 
   // *** 5. Load peers addresses from the command line ***
