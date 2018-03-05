@@ -414,6 +414,25 @@ void loadPayloadAddresses(char *payloadAddrFilename) {
     }
 }
 
+std::string networkName(uint32_t magic_value) {
+  switch(magic_value) {
+    case 0xd9b4bef9:
+      return "Bitcoin mainnet";
+      break;
+    case 0x0709110b:
+      return "Bitcoin testnet";
+      break;
+    case 0x6427e924:
+      return "Zcash mainnet";
+      break;
+    case 0xbff91afa:
+      return "Zcash testnet";
+      break;
+    default:
+      return "Unknown network: " + magic_value;
+      break;
+  }
+}
 
 /**** MAIN ****/
 
@@ -536,6 +555,8 @@ int main(int argc, char *argv[])
   if (!fPrintDebug) {
     log_debug().set_output_function(std::bind(output_to_null, std::ref(logfile), _1, _2, _3));
   }
+
+  log_info() << "Working with " << networkName(libbitcoin::magic_value());
 
   // *** 3. Load peers from the file (if provided) ***
   /* // If we asked to send getaddr, we need to listen to addr messages
