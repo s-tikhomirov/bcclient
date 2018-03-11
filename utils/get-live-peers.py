@@ -20,11 +20,11 @@ def get_ips_from_dns(urls):
 	ips = list(set(ips))
 	return ips
 
-def write_ips_to_file(ips, filename='peers.txt'):
+def write_list_to_file(l, filename='peers.txt'):
 	with open(filename, 'w') as file:
 		file.write('# ' + str(int(time.time())) + ' 0\n')
-		for ip in ips:
-			file.write(ip + '\n')
+		for elem in l:
+			file.write(elem + '\n')
 
 # copied from parser.py
 def findIp(string):
@@ -52,20 +52,54 @@ def get_addresses_from_peers(peers_filename, bcclient_path='../', timeout=15):
 	ips = list(set(ips))
 	return ips
 
+def is_accessible(response):
+	return (('Version received' in response) and ('Verack received' in response))
+
+def get_accessible_ips(peers_filename, bcclient_path='../'):
+	good_ips = []
+	bad_ips = []
+	lines = [line.rstrip('\n') for line in open(peers_filename, 'r')][1:] # skip '# <timestamp> 0'
+	total_ips = len(lines)
+	print("Total " + str(total_ips) + " IPs in file.")
+	counter = 0
+	for ip in lines:
+		if (counter % 10 == 0):
+			print("Checking IP " + str(counter) + " of " + str(total_ips))
+		response = subprocess.check_output('./bcclient ' + ip, 
+			shell=True,
+			cwd=bcclient_path).decode('utf-8')
+		if is_accessible(response):
+			good_ips.append(ip)
+		else:
+			bad_ips.append(ip)
+		counter += 1
+
+	print(str(len(good_ips)) + ' accessible, ' + str(len(bad_ips)) + ' inaccessible IPs.')
+	return good_ips
+
 
 def main():
 	path = '/home/sergei/Documents/code/bcclient/bcclient/utils/'
 	bootstrap_urls_file = path + 'bootstrap-dns-bitcoin-testnet.txt'
 	bootstrap_ips_file = path + 'bootstrap-peers.txt'
-	all_peers_file = path + 'peers.txt'
+	all_peers_file = path + 'all-peers.txt'
+	good_peers_file = path + 'good-peers.txt'
+
+	test_peers_file = path + 'peers-test.txt'
 	bcclient_path = '../'
-
+	
+	# get boostrap peers
 	bootstrap_ips = get_ips_from_dns(get_bootstrap_urls(bootstrap_urls_file))
-	write_ips_to_file(bootstrap_ips, bootstrap_ips_file)
-	ips = get_addresses_from_peers(bootstrap_ips_file, bcclient_path, timeout=120)
-	print('received ' + str(len(ips)) + ' distinct IPs.\n')
-	write_ips_to_file(ips, all_peers_file)
-
+	write_list_to_file(bootstrap_ips, bootstrap_ips_file)
+	
+	# get all peers
+	ips = get_addresses_from_peers(bootstrap_ips_file, bcclient_path, timeout=300)
+	print('Received ' + str(len(ips)) + ' distinct IPs.\n')
+	write_list_to_file(ips, all_peers_file)
+	
+	# get accessible peers
+	ips = get_accessible_ips(all_peers_file)
+	write_list_to_file(ips, good_peers_file)
 
 if __name__ == "__main__":
     main()
