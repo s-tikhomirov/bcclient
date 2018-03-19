@@ -4,6 +4,8 @@ import subprocess
 import socket
 import time
 import re
+from multiprocessing import Pool
+import itertools
 
 def get_bootstrap_urls(filename):
 	bootstrap_dns_entries = []
@@ -55,15 +57,14 @@ def get_addresses_from_peers(peers_filename, bcclient_path='../', timeout=15):
 def is_accessible(response):
 	return (('Version received' in response) and ('Verack received' in response))
 
-def get_accessible_ips(peers_filename, bcclient_path='../', timeout=1):
+def get_accessible_ips(lines, bcclient_path='../', timeout=1):
 	good_ips = []
 	bad_ips = []
-	lines = [line.rstrip('\n') for line in open(peers_filename, 'r')][1:] # skip '# <timestamp> 0'
 	total_ips = len(lines)
 	print("Total " + str(total_ips) + " IPs in file.")
 	counter = 0
 	for ip in lines:
-		if (counter % 1 == 0):
+		if (counter % 10 == 0):
 			print("Checking IP " + str(counter) + " of " + str(total_ips))
 		response = ''
 		try:
@@ -82,6 +83,17 @@ def get_accessible_ips(peers_filename, bcclient_path='../', timeout=1):
 	return good_ips
 
 
+def func(index):
+  print('func: starting' + str(index))
+  for i in range(10000000): pass
+  print('func: finishing' + str(index))
+  return str(index)
+
+def multi_test():
+	pool = Pool(processes=4)
+	print(pool.map(func, range(4)))
+
+
 def main():
 	path = '/home/sergei/Documents/code/bcclient/bcclient/utils/'
 	bootstrap_urls_file = path + 'bootstrap-dns-bitcoin-testnet.txt'
@@ -91,23 +103,29 @@ def main():
 
 	test_peers_file = path + 'peers-test.txt'
 	bcclient_path = '../'
-	'''
+	
 	# get boostrap peers
 	bootstrap_ips = get_ips_from_dns(get_bootstrap_urls(bootstrap_urls_file))
 	write_list_to_file(bootstrap_ips, bootstrap_ips_file)
 	
 	# get all peers
-	ips = get_addresses_from_peers(bootstrap_ips_file, bcclient_path, timeout=300)
-	print('Received ' + str(len(ips)) + ' distinct IPs.\n')
-	write_list_to_file(ips, all_peers_file)
-	
-	# get accessible peers
-	ips = get_accessible_ips(all_peers_file)
-	write_list_to_file(ips, good_peers_file)
-	'''
+	all_ips = get_addresses_from_peers(bootstrap_ips_file, bcclient_path, timeout=180)
+	print('Received ' + str(len(all_ips)) + ' distinct IPs.\n')
+	write_list_to_file(all_ips, all_peers_file)
+		
+	n = 32
+	#all_ips = [line.rstrip('\n') for line in open(path + 'good-peers-2018-03-17.txt', 'r')][1:]
+	all_ips_chunks = [all_ips[i::n] for i in range(n)]
+	print("Divided " + str(len(all_ips)) + " into " + str(len(all_ips_chunks)) + " chunks.")
 
-	ips = get_accessible_ips(path + 'good-peers-2018-03-17.txt')
-	write_list_to_file(ips, path + 'good-peers-2018-03-19.txt')
+	pool = Pool(processes=n)
+	ips = [pool.apply_async(get_accessible_ips, (all_ips_chunks[i], )) for i in range(n)]
+	ips_final = [item for sublist in [res.get() for res in ips] for item in sublist]
+	#print(ips_final)
+	#ips = get_accessible_ips([line.rstrip('\n') for line in open(path + 'peers-test.txt', 'r')][1:])
+	write_list_to_file(ips_final, path + 'good-peers-2018-03-19.txt')
+
+	#multi_test()
 
 if __name__ == "__main__":
     main()
