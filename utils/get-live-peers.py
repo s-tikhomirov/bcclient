@@ -55,7 +55,7 @@ def get_addresses_from_peers(peers_filename, bcclient_path='../', timeout=15):
 def is_accessible(response):
 	return (('Version received' in response) and ('Verack received' in response))
 
-def get_accessible_ips(peers_filename, bcclient_path='../'):
+def get_accessible_ips(peers_filename, bcclient_path='../', timeout=1):
 	good_ips = []
 	bad_ips = []
 	lines = [line.rstrip('\n') for line in open(peers_filename, 'r')][1:] # skip '# <timestamp> 0'
@@ -63,11 +63,15 @@ def get_accessible_ips(peers_filename, bcclient_path='../'):
 	print("Total " + str(total_ips) + " IPs in file.")
 	counter = 0
 	for ip in lines:
-		if (counter % 10 == 0):
+		if (counter % 1 == 0):
 			print("Checking IP " + str(counter) + " of " + str(total_ips))
-		response = subprocess.check_output('./bcclient ' + ip, 
-			shell=True,
-			cwd=bcclient_path).decode('utf-8')
+		response = ''
+		try:
+			response = subprocess.check_output('timeout ' + str(timeout) + ' ./bcclient ' + ip, 
+				shell=True,
+				cwd=bcclient_path).decode('utf-8')
+		except subprocess.CalledProcessError:
+			pass	# ignore exit on timeout: peer is inaccessible
 		if is_accessible(response):
 			good_ips.append(ip)
 		else:
@@ -87,7 +91,7 @@ def main():
 
 	test_peers_file = path + 'peers-test.txt'
 	bcclient_path = '../'
-	
+	'''
 	# get boostrap peers
 	bootstrap_ips = get_ips_from_dns(get_bootstrap_urls(bootstrap_urls_file))
 	write_list_to_file(bootstrap_ips, bootstrap_ips_file)
@@ -100,6 +104,10 @@ def main():
 	# get accessible peers
 	ips = get_accessible_ips(all_peers_file)
 	write_list_to_file(ips, good_peers_file)
+	'''
+
+	ips = get_accessible_ips(path + 'good-peers-2018-03-17.txt')
+	write_list_to_file(ips, path + 'good-peers-2018-03-19.txt')
 
 if __name__ == "__main__":
     main()
