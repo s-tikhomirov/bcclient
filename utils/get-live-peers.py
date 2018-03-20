@@ -108,14 +108,14 @@ def main():
 
 	# filter live peers (round 1)
 	ips_live_1 = get_live_ips_parallel(all_ips_1)
-	write_list_to_file(ips_live_1, path + 'live-peers_1_' + str(datetime.datetime.now().date()) +'.txt')
+	#write_list_to_file(ips_live_1, path + 'live-peers_1_' + str(datetime.datetime.now().date()) +'.txt')
 	
 	# get addr from all live peers
 	all_ips_2 = get_addresses_from_peers(path + 'live-peers_1_' + str(datetime.datetime.now().date()) +'.txt')
 
 	# filter live peers (round 2)
 	ips_live_2 = get_live_ips_parallel([ip for ip in all_ips_2 if ip not in all_ips_1])
-	write_list_to_file(ips_live_2, path + 'live-peers_2_' + str(datetime.datetime.now().date()) +'.txt')
+	#write_list_to_file(ips_live_2, path + 'live-peers_2_' + str(datetime.datetime.now().date()) +'.txt')
 
 	write_list_to_file(ips_live_1 + ips_live_2, live_ips_file)
 
