@@ -37,8 +37,8 @@ const std::map<uint32_t, uint16_t> PORT = {
 };
 
 const std::map<uint32_t, uint32_t> VERSION = {
-	{0xd9b4bef9, 70014},		// Bitcoin mainnet
-	{0x0709110b, 70014},		// Bitcoin testnet
+	{0xd9b4bef9, 70001},		// Bitcoin mainnet
+	{0x0709110b, 70001},		// Bitcoin testnet
 	{0x6427e924, 170003},		// Zcash mainnet
 	{0xbff91afa, 170003}		// Zcash testnet
 };
@@ -66,10 +66,10 @@ const std::map<uint32_t, ip_address_type> ADDRESS_YOU = {
 
 // Latest update: 2018-03-02
 const std::map<uint32_t, uint32_t> RECENT_HEIGHT = {
-	{0xd9b4bef9, 511650},		// Bitcoin mainnet
-	{0x0709110b, 1287119},		// Bitcoin testnet
-	{0x6427e924, 281366},		// Zcash mainnet
-	{0xbff91afa, 197598}		// Zcash testnet
+	{0xd9b4bef9, 514551},		// Bitcoin mainnet
+	{0x0709110b, 1288803},		// Bitcoin testnet
+	{0x6427e924, 292306},		// Zcash mainnet
+	{0xbff91afa, 207489}		// Zcash testnet
 };
 
 #endif
